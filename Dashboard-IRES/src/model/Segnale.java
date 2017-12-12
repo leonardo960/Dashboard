@@ -1,9 +1,13 @@
 package model;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.Random;
 
-public class Segnale {
+public class Segnale implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2806045919769750244L;
 	private char[] robotID;
 	private char[] clusterID;
 	private byte sensorNumber;
@@ -17,17 +21,7 @@ public class Segnale {
 		this.value = value;
 		this.timestamp = new Timestamp(timestamp);
 	}
-	/**
-	 * Generates a random Signal for testing purposes
-	 */
-	public Segnale(){
-		//Random rand = new Random();
-		
-		//Va inserita la logica con cui si generano segnali random
-		//che tiene conto del fatto che magari qualche sensore è down
-		//e quindi invio il segnale di up etc.
-		//Comunque completamente random non va bene
- 	}
+	
 	
 	public boolean getValue(){
 		return value;

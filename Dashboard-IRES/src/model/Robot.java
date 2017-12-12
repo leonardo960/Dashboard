@@ -28,7 +28,7 @@ public class Robot {
 		this.id = id;
 		this.clusterid = clusterid;
 		IR = 0;
-		downSensors = 0;
+		downSensors = 1;
 	}
 	
 	public void setSensor(byte index, boolean value){
