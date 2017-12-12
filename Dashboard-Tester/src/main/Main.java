@@ -12,18 +12,21 @@ import model.Segnale;
 
 public class Main {
 	private static LinkedList<Robot> robots;
-	
+	private static Random rand;
 	public static void main(String[] args){
 		robots = new LinkedList<Robot>();
-		
+		rand = new Random();
 		for(int i = 0; i < 90000; i++){
 			String robotID;
 			if(i < 10) robotID = "R0000";
-			else if(i > 10 && i < 100) robotID = "R000";
-			else if(i > 100 && i < 1000) robotID = "R00";
-			else if (i > 1000 && i < 10000) robotID = "R0";
+			else if(i >= 10 && i < 100) robotID = "R000";
+			else if(i >= 100 && i < 1000) robotID = "R00";
+			else if (i >= 1000 && i < 10000) robotID = "R0";
 			else robotID = "R";
- 			robots.add(new Robot((robotID + i).toCharArray()));
+			char[] clusterid;
+			String clusteridString = "C" + rand.nextInt(10) + rand.nextInt(10);
+			clusterid = clusteridString.toCharArray();
+ 			robots.add(new Robot((robotID + i).toCharArray(), clusterid));
 		}
 		
 		try {
@@ -51,7 +54,6 @@ public class Main {
 	}
 	
 	private static Segnale generaSegnaleRandom(){
-		Random rand = new Random();
 		Robot robot = robots.get(rand.nextInt(robots.size()));
 		int choice = rand.nextInt(7);
 		byte sensorNumber = 0;
@@ -71,10 +73,6 @@ public class Main {
 		case 6: sensorNumber = 6;
 				break;
 		}
-		char[] clusterid;
-		String clusteridString = "C" + rand.nextInt(10) + rand.nextInt(10);
-		clusterid = clusteridString.toCharArray();
-		
-		return new Segnale(robot.getID(), clusterid, sensorNumber, !robot.getSensorValue(sensorNumber), System.currentTimeMillis());
+		return new Segnale(robot.getID(), robot.getCluster(), sensorNumber, !robot.getSensorValue(sensorNumber), System.currentTimeMillis());
 	}
 }

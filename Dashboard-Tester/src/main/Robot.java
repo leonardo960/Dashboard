@@ -7,7 +7,7 @@ public class Robot {
 		private byte IR;
 		private byte downSensors;
 	
-		public Robot(char[] id){
+		public Robot(char[] id, char[] cluster){
 			sensors = new boolean[7];
 			sensors[0] = true;
 			sensors[1] = true;
@@ -17,6 +17,7 @@ public class Robot {
 			sensors[5] = true;
 			sensors[6] = true;
 			this.id = id;
+			this.clusterid = cluster;
 			IR = 0;
 			downSensors = 0;
 		}
