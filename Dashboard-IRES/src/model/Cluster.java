@@ -3,10 +3,10 @@ import java.util.*;
 
 public class Cluster {
 	private List<Robot> robots;
-	private char[] id;
+	private String id;
 	private byte IR;
 	short robotDown;
-	public Cluster(char[] id){
+	public Cluster(String id){
 		this.id = id;
 		robots = new LinkedList<Robot>();
 		IR = 0;
@@ -17,7 +17,7 @@ public class Cluster {
 		return robots;
 	}
 	
-	public char[] getID(){
+	public String getID(){
 		return id;
 	}
 	

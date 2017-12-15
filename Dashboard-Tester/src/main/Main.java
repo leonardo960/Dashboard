@@ -12,6 +12,7 @@ import model.Segnale;
 
 public class Main {
 	private static LinkedList<Robot> robots;
+	//Devo controllare se il Cluster non esiste o me ne vengono un bordello
 	private static Random rand;
 	public static void main(String[] args){
 		robots = new LinkedList<Robot>();
@@ -34,15 +35,30 @@ public class Main {
 			Socket client = socket.accept();
 			System.out.println("Connected to client: " + client.getLocalAddress());
 			
+			long sendBegin = System.currentTimeMillis();
 			
 			ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
 			ObjectInputStream inputStream = new ObjectInputStream(client.getInputStream());
 			outputStream.flush();
-			for(int i = 0; i < 90000; i++){
-				outputStream.writeObject(generaSegnaleRandom());
-				System.out.println("Sent signal " + "#" + i + " to client: " + client.getLocalAddress());
+			for(int j = 0; j < 2; j++){
+				long begin = System.currentTimeMillis();
+					for(int i = 0; i < 90000; i++){
+						outputStream.writeObject(generaSegnaleRandom());
+						System.out.println("Sent signal " + "#" + i + " to client: " + client.getLocalAddress());
+					}
+				long end = System.currentTimeMillis();
+				
+				if((end - begin) < 60000L)
+					try {
+						Thread.sleep(60000L - (end - begin));
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 			}
 			
+			long sendEnd = System.currentTimeMillis();
+			System.out.println("Per generare e inviare 180000 segnali ci sono voluti " + (sendEnd - sendBegin) + "secondi");
 			System.out.println("Done sending signals. Accepting other clients as a means to wait");
 			
 			socket.accept();
@@ -73,6 +89,6 @@ public class Main {
 		case 6: sensorNumber = 6;
 				break;
 		}
-		return new Segnale(robot.getID(), robot.getCluster(), sensorNumber, !robot.getSensorValue(sensorNumber), System.currentTimeMillis());
+		return new Segnale(String.valueOf(robot.getID()), String.valueOf(robot.getCluster()), sensorNumber, !robot.getSensorValue(sensorNumber), System.currentTimeMillis());
 	}
 }

@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.TreeMap;
 
 import model.Cluster;
 import model.FinestraTemporale;
@@ -15,8 +14,8 @@ import model.Robot;
 import model.Segnale;
 
 public class GestoreSegnali implements Runnable {
-	private HashMap<char[], Cluster> clusters = new HashMap<char[], Cluster>();
-	private HashMap<char[], Robot> robots = new HashMap<char[], Robot>();
+	private HashMap<String, Cluster> clusters = new HashMap<String, Cluster>();
+	private HashMap<String, Robot> robots = new HashMap<String, Robot>();
 	private LinkedList<Segnale> segnali = new LinkedList<Segnale>();
 	
 	private void analizzaSegnale(){
@@ -28,13 +27,16 @@ public class GestoreSegnali implements Runnable {
 			Cluster cluster = null;
 			//Riconosciamo il Robot e il Cluster
 			if(!robots.containsKey(segnale.getRobotID())){
-				//Prima creaiamo il cluster se non c'è
+				//Prima creiamo il cluster se non c'è
 				if(!clusters.containsKey(segnale.getClusterID())){
 					cluster = new Cluster(segnale.getClusterID());
-					clusters.put(segnale.getClusterID(), cluster);
+					clusters.put(cluster.getID(), cluster);
+				}else{
+					cluster = clusters.get(segnale.getClusterID());
 				}
-				robot = new Robot(segnale.getSensorNumber(), segnale.getRobotID(), segnale.getClusterID());
-				robots.put(segnale.getRobotID(), robot);
+				robot = new Robot(segnale.getRobotID(), segnale.getClusterID());
+				robots.put(robot.getID(), robot);
+				cluster.getRobots().add(robot);
 			}else{
 				robot = robots.get(segnale.getRobotID());
 				cluster = clusters.get(segnale.getClusterID());
@@ -69,16 +71,51 @@ public class GestoreSegnali implements Runnable {
 	}
 	
 	private void calcolaIR(){
+		System.out.println("Inizio calcolo IR");
 		long begin = System.currentTimeMillis();
 		
-		
-		
-		
 		Timestamp oneHourAgo = new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000));
+		Timestamp now = new Timestamp(System.currentTimeMillis());
 		
-		TreeMap<char[], LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali();
+		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali();
+		long downTime = 0;
+		for(String id : finestreTemporali.keySet()){
+			downTime = 0;
+			for(FinestraTemporale ft : finestreTemporali.get(id)){
+				if(ft.getSogliaDestra() != null){
+					if(ft.getSogliaSinistra().before(oneHourAgo)){
+						downTime += ft.getSogliaDestra().getTime()/1000L - oneHourAgo.getTime()/1000L;
+					}else{
+						downTime += ft.getSogliaDestra().getTime()/1000L - ft.getSogliaSinistra().getTime()/1000L;
+					}	
+				}else{
+					downTime += now.getTime()/1000L - ft.getSogliaSinistra().getTime()/1000L;
+				}
+			}
+			if(clusters.containsKey(id)) System.out.println(downTime);
+			double preciseDownTime = downTime / 36.0;
+			preciseDownTime = Math.ceil(preciseDownTime);
+			downTime = (long) preciseDownTime;
+			byte IR = 0;
+			if(downTime >= 100L){
+				IR = 100;
+			}else{
+				IR = (byte) downTime;
+			}
+			if(id.charAt(0) == 'C'){
+				clusters.get(id).setIR(IR);
+			}else{
+				robots.get(id).setIR(IR);
+			}
+		}
 		
+		/*
+		 * 
+		 * TODO: invio dati
+		 * 
+		 */
 		
+		Storage.rimuoviFinestreInattive(oneHourAgo);
 		
 		long end = System.currentTimeMillis();
 		
@@ -86,6 +123,19 @@ public class GestoreSegnali implements Runnable {
 		
 		System.out.println("Per calcolare l'IR dei Robot e dei Cluster ci sono voluti " + timeElapsed / 1000.0 + " secondi");
 		
+		//Stampo l'IR dei primi 500 Robot e dei primi 50 Cluster per controllare un po'
+		int counter = 500;
+		for(String c : robots.keySet()){
+			System.out.println("L\'IR del robot " + c + " è " + robots.get(c).getIR() + "%");
+			if(--counter < 0) break;
+		}
+		counter = 100;
+		for(String c : clusters.keySet()){
+			System.out.println("Dati Cluster " + c +" :\n"
+					+ "IR: " + clusters.get(c).getIR() + "\n"
+					+ "Robot attualmente down: " + clusters.get(c).getRobotDown());
+			if(--counter < 0) break;
+		}
 	}
 	
 	@Override
@@ -119,10 +169,16 @@ public class GestoreSegnali implements Runnable {
 		long timeElapsed = (end - begin);
 		
 		System.out.println("Per analizzare 90.000 segnali ci sono voluti " + timeElapsed / 1000.0 + " secondi");
+		/*try {
+		System.out.println("Dormo per 10 secondi");
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 		
 		
-		
-		//calcolaIR();
+		calcolaIR();
 	}
 	
 	class Ricettore implements Runnable{
@@ -134,7 +190,7 @@ public class GestoreSegnali implements Runnable {
 				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
 				//Sarebbe per sempre in teoria
-				for(int i = 0; i < 90000; i++){
+				for(int i = 0; i < 180000; i++){
 					try{
 						Segnale segnale = (Segnale) inputStream.readObject();
 						System.out.println("Read signal " + "#" + i + "from client " + socket.getLocalAddress());

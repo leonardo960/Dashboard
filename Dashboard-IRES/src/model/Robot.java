@@ -2,8 +2,8 @@ package model;
 
 public class Robot {
 	private boolean[] sensors;
-	private char[] id;
-	private char[] clusterid;
+	private String id;
+	private String clusterid;
 	private byte IR;
 	private byte downSensors;
 	//Il Robot viene creato solo quando ancora non lo conosciamo, tramite un segnale
@@ -15,7 +15,7 @@ public class Robot {
 	 * @param id the Robot's ID (taken from signal)
 	 * @param cluster the Robot's Cluster (taken from signal)
 	 */
-	public Robot(byte downSignalIndex, char[] id, char[] clusterid){
+	public Robot(String id, String clusterid){
 		sensors = new boolean[7];
 		sensors[0] = true;
 		sensors[1] = true;
@@ -24,22 +24,21 @@ public class Robot {
 		sensors[4] = true;
 		sensors[5] = true;
 		sensors[6] = true;
-		sensors[downSignalIndex] = false;
 		this.id = id;
 		this.clusterid = clusterid;
 		IR = 0;
-		downSensors = 1;
+		downSensors = 0;
 	}
 	
 	public void setSensor(byte index, boolean value){
 		sensors[index] = value;
 	}
 	
-	public char[] getID(){
+	public String getID(){
 		return id;
 	}
 	
-	public char[] getCluster(){
+	public String getCluster(){
 		return clusterid;
 	}
 	

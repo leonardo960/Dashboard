@@ -6,6 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TreeMap;
 
@@ -94,8 +97,8 @@ public class Storage {
 		}
 	}
 	
-	static public TreeMap<char[], LinkedList<FinestraTemporale>> prelevaFinestreTemporali(){
-		TreeMap<char[], LinkedList<FinestraTemporale>> finestreTemporali = new TreeMap<char[], LinkedList<FinestraTemporale>>();
+	static public HashMap<String, LinkedList<FinestraTemporale>> prelevaFinestreTemporali(){
+		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = new HashMap<String, LinkedList<FinestraTemporale>>();
 		
 		String sql = "select * from finestra_temporale";
 		try {
@@ -104,12 +107,13 @@ public class Storage {
 			ResultSet rs = statement.executeQuery(sql);
 			
 			while(rs.next()){
-				char[] robotid = rs.getString("robot").toCharArray();
-				if(finestreTemporali.containsKey(robotid)){
-					finestreTemporali.get(robotid).add(new FinestraTemporale(robotid, rs.getByte("numSensore"), rs.getTimestamp("sogliaSinistra"), rs.getTimestamp("sogliaDestra")));
+				String id = rs.getString("id_oggetto");
+				
+				if(finestreTemporali.containsKey(id)){
+					finestreTemporali.get(id).add(new FinestraTemporale(id, rs.getTimestamp("sogliaSinistra"), rs.getTimestamp("sogliaDestra")));
 				}else{
-					finestreTemporali.put(robotid, new LinkedList<FinestraTemporale>());
-					finestreTemporali.get(robotid).add(new FinestraTemporale(robotid, rs.getByte("numSensore"), rs.getTimestamp("sogliaSinistra"), rs.getTimestamp("sogliaDestra")));
+					finestreTemporali.put(id, new LinkedList<FinestraTemporale>());
+					finestreTemporali.get(id).add(new FinestraTemporale(id, rs.getTimestamp("sogliaSinistra"), rs.getTimestamp("sogliaDestra")));
 				}
 			}
 			
@@ -122,6 +126,21 @@ public class Storage {
 		}
 		
 		return finestreTemporali;
+	}
+	
+	static public void rimuoviFinestreInattive(Timestamp oneHourAgo){
+		String sql = "delete from finestra_temporale where sogliaDestra < ?";
+		try {
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setTimestamp(1, oneHourAgo);
+			ps.executeUpdate();
+			
+			ps.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 }

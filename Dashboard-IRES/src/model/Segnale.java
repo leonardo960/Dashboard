@@ -8,13 +8,13 @@ public class Segnale implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 2806045919769750244L;
-	private char[] robotID;
-	private char[] clusterID;
+	private String robotID;
+	private String clusterID;
 	private byte sensorNumber;
 	private boolean value;
 	private Timestamp timestamp;
 	
-	public Segnale(char[] robotID, char[] clusterID, byte sensorNumber, boolean value, long timestamp){
+	public Segnale(String robotID, String clusterID, byte sensorNumber, boolean value, long timestamp){
 		this.robotID = robotID;
 		this.clusterID = clusterID;
 		this.sensorNumber = sensorNumber;
@@ -31,7 +31,7 @@ public class Segnale implements Serializable{
 		return timestamp;
 	}
 	
-	public char[] getRobotID(){
+	public String getRobotID(){
 		return robotID;
 	}
 	
@@ -39,7 +39,7 @@ public class Segnale implements Serializable{
 		return sensorNumber;
 	}
 	
-	public char[] getClusterID(){
+	public String getClusterID(){
 		return clusterID;
 	}
 }
