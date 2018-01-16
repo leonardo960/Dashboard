@@ -1,12 +1,11 @@
 package controller;
 
-import model.Segnale;
 
 public class IRES {
 
 	public static void main(String[] args) {
 		GestoreSegnali gs = new GestoreSegnali();
-		Storage.inizializza();
+		Storage.inizializza(args);
 		
 		long begin = System.currentTimeMillis();
 		

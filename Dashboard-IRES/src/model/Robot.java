@@ -6,12 +6,8 @@ public class Robot {
 	private String clusterid;
 	private byte IR;
 	private byte downSensors;
-	//Il Robot viene creato solo quando ancora non lo conosciamo, tramite un segnale
-	//di down. Perciò passo nel costruttore un indice (tipo byte per efficienza) a cui
-	//settare false nell'array di booleani, il resto saranno true ovviamente.
 	/**
-	 * Initiates a Robot following this logic:
-	 * @param downSignalIndex the index where the first down signal should go
+	 * Initiates a Robot given its id and cluster id.
 	 * @param id the Robot's ID (taken from signal)
 	 * @param cluster the Robot's Cluster (taken from signal)
 	 */

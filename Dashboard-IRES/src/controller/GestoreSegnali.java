@@ -3,6 +3,8 @@ package controller;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
+//import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -14,15 +16,20 @@ import model.Robot;
 import model.Segnale;
 
 public class GestoreSegnali implements Runnable {
-	private HashMap<String, Cluster> clusters = new HashMap<String, Cluster>();
-	private HashMap<String, Robot> robots = new HashMap<String, Robot>();
-	private LinkedList<Segnale> segnali = new LinkedList<Segnale>();
+	private HashMap<String, Cluster> clusters;
+	private HashMap<String, Robot> robots;
+	private LinkedList<Segnale> segnali;
+	public GestoreSegnali(){
+		clusters = new HashMap<String, Cluster>();
+		robots = new HashMap<String, Robot>();
+		segnali = new LinkedList<Segnale>();
+	}
 	
 	private void analizzaSegnale(){
 		if(segnali.isEmpty()){
 			return;
 		}else{
-			Segnale segnale = segnali.removeLast();
+			Segnale segnale = segnali.removeFirst();
 			Robot robot = null;
 			Cluster cluster = null;
 			//Riconosciamo il Robot e il Cluster
@@ -46,6 +53,7 @@ public class GestoreSegnali implements Runnable {
 				robot.decrementDownSensors();
 				robot.setSensor(segnale.getSensorNumber(), true);
 				if(robot.getDownSensors() == 0){
+					System.out.println("Chiudo finestra temporale Robot #" + robot.getID());
 					Storage.chiudiFinestraTemporaleRobot(segnale);
 					cluster.decrementRobotDown();
 					if(cluster.getRobotDown() == 0){
@@ -77,7 +85,11 @@ public class GestoreSegnali implements Runnable {
 		Timestamp oneHourAgo = new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000));
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		
+		System.out.println("One hour ago: " + oneHourAgo);
+		System.out.println("Now: " + now);
+		
 		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali();
+		
 		long downTime = 0;
 		for(String id : finestreTemporali.keySet()){
 			downTime = 0;
@@ -92,16 +104,18 @@ public class GestoreSegnali implements Runnable {
 					downTime += now.getTime()/1000L - ft.getSogliaSinistra().getTime()/1000L;
 				}
 			}
-			if(clusters.containsKey(id)) System.out.println(downTime);
+			//if(clusters.containsKey(id)) System.out.println(downTime);
 			double preciseDownTime = downTime / 36.0;
+			
+			//Tronco fino alla prima cifra decimale
+			BigDecimal bd = new BigDecimal(String.valueOf(preciseDownTime)).setScale(1, BigDecimal.ROUND_FLOOR);
+			preciseDownTime = bd.doubleValue();
+			
+			//Arrotondiamo per eccesso, come da specifica
 			preciseDownTime = Math.ceil(preciseDownTime);
-			downTime = (long) preciseDownTime;
-			byte IR = 0;
-			if(downTime >= 100L){
-				IR = 100;
-			}else{
-				IR = (byte) downTime;
-			}
+			
+			byte IR = (byte) preciseDownTime;
+			
 			if(id.charAt(0) == 'C'){
 				clusters.get(id).setIR(IR);
 			}else{
@@ -129,12 +143,12 @@ public class GestoreSegnali implements Runnable {
 			System.out.println("L\'IR del robot " + c + " è " + robots.get(c).getIR() + "%");
 			if(--counter < 0) break;
 		}
-		counter = 100;
+		//counter = 100;
 		for(String c : clusters.keySet()){
 			System.out.println("Dati Cluster " + c +" :\n"
-					+ "IR: " + clusters.get(c).getIR() + "\n"
+					+ "IR: " + clusters.get(c).getIR() + "%\n"
 					+ "Robot attualmente down: " + clusters.get(c).getRobotDown());
-			if(--counter < 0) break;
+			//if(--counter < 0) break;
 		}
 	}
 	
@@ -149,6 +163,8 @@ public class GestoreSegnali implements Runnable {
 		
 		Thread ricettore = new Thread(new Ricettore());
 		ricettore.start();
+		//Per ora aspettiamo che Ricettore termini e poi lavoriamo con i segnali
+		//In realtà questi processi vanno insieme
 		try {
 			ricettore.join();
 		} catch (InterruptedException e) {
@@ -160,15 +176,22 @@ public class GestoreSegnali implements Runnable {
 		
 		long begin = System.currentTimeMillis();
 		
+		int numeroSegnali = segnali.size();
+	
 		while(segnali.size() > 0){
 			analizzaSegnale();
 		}
 		
+		//Finiamo di effettuare le ultime query se ne rimangono
+		Storage.commitChanges();
+		
+	
 		long end = System.currentTimeMillis();
 		
 		long timeElapsed = (end - begin);
 		
-		System.out.println("Per analizzare 90.000 segnali ci sono voluti " + timeElapsed / 1000.0 + " secondi");
+		System.out.println("Per analizzare " + numeroSegnali + " segnali ci sono voluti " + timeElapsed / 1000.0 + " secondi");
+		System.out.println("Il numero di Robot registrati è: " + robots.size());
 		/*try {
 		System.out.println("Dormo per 10 secondi");
 			Thread.sleep(10000);
@@ -190,15 +213,21 @@ public class GestoreSegnali implements Runnable {
 				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 				ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
 				//Sarebbe per sempre in teoria
-				for(int i = 0; i < 180000; i++){
+				int counter = 0;
+				
+				Segnale segnale = null;
+				while(true)
 					try{
-						Segnale segnale = (Segnale) inputStream.readObject();
-						System.out.println("Read signal " + "#" + i + "from client " + socket.getLocalAddress());
+						segnale = (Segnale) inputStream.readObject();
+						if(segnale.getClusterID() == null) break;
 						segnali.add(segnale);
+						System.out.println("Read signal " + "#" + counter++ + " from client " + socket.getLocalAddress());
 					}catch(IOException | ClassNotFoundException e){
 						e.printStackTrace();
 					}
-				}
+				//Fine ricezione segnali; avviso il server
+				outputStream.writeObject(null);
+				outputStream.flush();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

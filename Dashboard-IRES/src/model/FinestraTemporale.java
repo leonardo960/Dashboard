@@ -3,18 +3,18 @@ package model;
 import java.sql.Timestamp;
 
 public class FinestraTemporale {
-	private String robotid;
+	private String id_oggetto;
 	private Timestamp sogliaSinistra;
 	private Timestamp sogliaDestra;
 	
-	public FinestraTemporale(String robotid, Timestamp sogliaSinistra, Timestamp sogliaDestra){
-		this.robotid = robotid;
+	public FinestraTemporale(String id_oggetto, Timestamp sogliaSinistra, Timestamp sogliaDestra){
+		this.id_oggetto = id_oggetto;
 		this.sogliaSinistra = sogliaSinistra;
 		this.sogliaDestra = sogliaDestra;
 	}
 	
-	public String getRobotID(){
-		return robotid;
+	public String getId(){
+		return id_oggetto;
 	}
 	
 	public Timestamp getSogliaSinistra(){

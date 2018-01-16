@@ -2,12 +2,12 @@ package main;
 
 public class Robot {
 		private boolean[] sensors;
-		private char[] id;
-		private char[] clusterid;
+		private String id;
+		private String clusterid;
 		private byte IR;
 		private byte downSensors;
 	
-		public Robot(char[] id, char[] cluster){
+		public Robot(String id, String cluster){
 			sensors = new boolean[7];
 			sensors[0] = true;
 			sensors[1] = true;
@@ -26,11 +26,11 @@ public class Robot {
 			sensors[index] = value;
 		}
 		
-		public char[] getID(){
+		public String getID(){
 			return id;
 		}
 		
-		public char[] getCluster(){
+		public String getCluster(){
 			return clusterid;
 		}
 		
