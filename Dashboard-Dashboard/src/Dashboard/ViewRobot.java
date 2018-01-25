@@ -12,17 +12,12 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 
-public class ViewRobot {
-	private JFrame window;
-	private Robot r;
-	private HashMap<String, Cluster> c_map;
-	private HashMap<String, Robot> r_map;
+public class ViewRobot extends ShareData{
 	
-	public ViewRobot(JFrame w, Robot r, HashMap<String, Cluster> c_map, HashMap<String, Robot> r_map){
-		window = w;
+	private Robot r;
+	
+	public ViewRobot(Robot r){
 		this.r = r;
-		this.c_map = c_map;
-		this.r_map = r_map;
 		
 		initialize();
 	}
@@ -38,6 +33,14 @@ public class ViewRobot {
 		JLabel clst = new JLabel("Informazioni robot");
 		clst.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 20));
 		robot_pnl.add(clst, "width 300, height 25");
+		
+		JLabel lbl = new JLabel("Ultimo aggiornamento:");
+		lbl.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		robot_pnl.add(lbl, "pos 265px 10px, width 115, height 15");
+		
+		JLabel lblTime = new JLabel(""+lastUpdate);
+		lblTime.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		robot_pnl.add(lblTime, "pos 430px 10px, width 110, height 15");
 		
 		JLabel id = new JLabel("ID robot: ");
 		id.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
@@ -145,7 +148,7 @@ public class ViewRobot {
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robot_pnl.setVisible(false);
-				new Dashboard(c_map, r_map);
+				new Dashboard();
 		}});
 		
 		JButton btnCluster = new JButton("Cluster");
@@ -154,7 +157,7 @@ public class ViewRobot {
 		btnCluster.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robot_pnl.setVisible(false);
-				new ViewCluster(window, c_map.get(r.getCluster()), c_map, r_map);
+				new ViewCluster(c_map.get(r.getCluster()));
 		}});
 	}
 	

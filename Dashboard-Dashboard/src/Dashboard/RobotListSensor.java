@@ -15,20 +15,14 @@ import javax.swing.JScrollPane;
 
 import net.miginfocom.swing.MigLayout;
 
-public class RobotListSensor {
-	private JFrame window;
+public class RobotListSensor extends ShareData{
 	private Cluster c;
 	private int sensor;
-	private HashMap<String, Cluster> c_map;
-	private HashMap<String, Robot> r_map;
 	
 	//Passo il frame base come parametro
-	public RobotListSensor(JFrame w, Cluster c, int sensor, HashMap<String, Cluster> c_map ,HashMap<String, Robot> r_map){
-		window = w;
+	public RobotListSensor(Cluster c, int sensor){
 		this.c = c;
 		this.sensor=sensor;
-		this.c_map = c_map;
-		this.r_map = r_map;
 		
 		initialize();
 	}
@@ -63,7 +57,7 @@ public class RobotListSensor {
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						robots_list_pnl.setVisible(false);
-						new ViewRobot(window, r_map.get(jb.getText()), c_map, r_map);
+						new ViewRobot(r_map.get(jb.getText()));
 					}});
 		  }
 		  
@@ -80,7 +74,7 @@ public class RobotListSensor {
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robots_list_pnl.setVisible(false);
-				new Dashboard(c_map, r_map);
+				new Dashboard();
 		}});
 		
 		JButton btnBack = new JButton("Indietro");
@@ -89,8 +83,15 @@ public class RobotListSensor {
 		btnBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robots_list_pnl.setVisible(false);
-				new ViewCluster(window, c, c_map, r_map);
+				new ViewCluster(c);
 		}});
+		
+
+		JLabel lbl = new JLabel("Ultimo aggiornamento:");
+		panel_list.add(lbl, "pos 480px 10px, width 110, height 15");
+		
+		JLabel lblTime = new JLabel(""+lastUpdate);
+		panel_list.add(lblTime, "pos 480px 30px, width 110, height 15");
 
 	}
 }

@@ -20,17 +20,11 @@ import javax.swing.JTextField;
 
 import net.miginfocom.swing.MigLayout;
 
-public class ViewSearch {
-	private JFrame window;
-	private HashMap<String, Cluster> c_map;
-	private HashMap<String, Robot> r_map;
+public class ViewSearch extends ShareData{
 	String searched;
 	
 	//Passo il frame base come parametro
-	public ViewSearch(JFrame w, HashMap<String, Cluster> c_map, HashMap<String, Robot> r_map){
-		window = w;
-		this.c_map = c_map;
-		this.r_map = r_map;
+	public ViewSearch(){
 		searched = null;
 		
 		initialize();
@@ -42,6 +36,14 @@ public class ViewSearch {
 		search_pnl.setBounds(0,0,700,500);
 		search_pnl.setVisible(true);
 		window.getContentPane().add(search_pnl);
+		
+		JLabel lbl = new JLabel("Ultimo aggiornamento:");
+		lbl.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		search_pnl.add(lbl, "pos 230px 10px, width 115, height 15");
+		
+		JLabel lblTime = new JLabel(""+lastUpdate);
+		lblTime.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		search_pnl.add(lblTime, "pos 400px 10px, width 110, height 15");
 		
 		JLabel search = new JLabel("Cerca per ID");
 		search.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 25));
@@ -109,9 +111,9 @@ public class ViewSearch {
 			public void actionPerformed(ActionEvent e) {
 				search_pnl.setVisible(false);
 				if(id_searched.getText().substring(0,1).equals("C"))
-					new ViewCluster(window, c_map.get(searched), c_map, r_map);
+					new ViewCluster(c_map.get(searched));
 				else
-					new ViewRobot(window, r_map.get(searched), c_map, r_map);
+					new ViewRobot(r_map.get(searched));
 			}});
 		
 		JButton btnHome = new JButton("Home");
@@ -120,7 +122,9 @@ public class ViewSearch {
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				search_pnl.setVisible(false);
-				new Dashboard(c_map, r_map);
+				new Dashboard();
 		}});
+		
+		
 	}
 }

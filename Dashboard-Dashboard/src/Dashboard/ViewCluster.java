@@ -15,19 +15,12 @@ import javax.swing.JScrollPane;
 
 import net.miginfocom.swing.MigLayout;
 
-public class ViewCluster {
-
-	private JFrame window;
-	private Cluster c;
-	private HashMap<String, Cluster> c_map;
-	private HashMap<String, Robot> r_map;
+public class ViewCluster extends ShareData{
 	
-	public ViewCluster(JFrame w, Cluster c, HashMap<String, Cluster> c_map, HashMap<String, Robot> r_map){
-		window = w;
+	private Cluster c;
+	
+	public ViewCluster(Cluster c){
 		this.c = c;
-		this.c_map = c_map;
-		this.r_map = r_map;
-		
 		initialize();
 	}
 	
@@ -46,6 +39,14 @@ public class ViewCluster {
 		JLabel clst = new JLabel("Informazioni cluster");
 		clst.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 20));
 		cluster_pnl.add(clst, "width 300, height 25");
+		
+		JLabel lbl = new JLabel("Ultimo aggiornamento:");
+		lbl.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		cluster_pnl.add(lbl, "pos 265px 10px, width 115, height 15");
+		
+		JLabel lblTime = new JLabel(""+lastUpdate);
+		lblTime.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		cluster_pnl.add(lblTime, "pos 430px 10px, width 110, height 15");
 		
 		JLabel id = new JLabel("ID Cluster: ");
 		id.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
@@ -96,7 +97,7 @@ public class ViewCluster {
 		show_rbt1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 0, c_map, r_map);
+				new RobotListSensor(c, 0);
 		}});
 		
 		JLabel sensor2 = new JLabel("Robots con sensore 2 down: ");
@@ -113,7 +114,7 @@ public class ViewCluster {
 		show_rbt2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 1, c_map, r_map);
+				new RobotListSensor(c, 1);
 		}});
 		
 		JLabel sensor3 = new JLabel("Robots con sensore 3 down: ");
@@ -130,7 +131,7 @@ public class ViewCluster {
 		show_rbt3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 2, c_map, r_map);
+				new RobotListSensor(c, 2);
 		}});
 		
 		JLabel sensor4 = new JLabel("Robots con sensore 4 down: ");
@@ -147,7 +148,7 @@ public class ViewCluster {
 		show_rbt4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 3, c_map, r_map);
+				new RobotListSensor(c, 3);
 		}});
 		
 		JLabel sensor5 = new JLabel("Robots con sensore 5 down: ");
@@ -164,7 +165,7 @@ public class ViewCluster {
 		show_rbt5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 4, c_map, r_map);
+				new RobotListSensor(c, 4);
 		}});
 		
 		JLabel sensor6 = new JLabel("Robots con sensore 6 down: ");
@@ -181,7 +182,7 @@ public class ViewCluster {
 		show_rbt6.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 5, c_map, r_map);
+				new RobotListSensor(c, 5);
 		}});
 
 		JLabel sensor7 = new JLabel("Robots con sensore 7 down: ");
@@ -198,7 +199,7 @@ public class ViewCluster {
 		show_rbt7.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(window, c, 6, c_map, r_map);
+				new RobotListSensor(c, 6);
 		}});
 		
 		JLabel lista_rbt = new JLabel("Robots nel Cluster");
@@ -227,7 +228,7 @@ public class ViewCluster {
 			jb.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					pnl.setVisible(false);
-					new ViewRobot(window, r_map.get(jb.getText()), c_map, r_map);
+					new ViewRobot(r_map.get(jb.getText()));
 					}});
 		}
 		
@@ -245,7 +246,7 @@ public class ViewCluster {
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new Dashboard(c_map, r_map);
+				new Dashboard();
 		}});
 	}
 }
