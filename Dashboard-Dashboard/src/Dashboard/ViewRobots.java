@@ -8,22 +8,16 @@ import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import net.miginfocom.swing.MigLayout;
 
-public class ViewRobots {
-	private JFrame window;
-	private HashMap<String, Cluster> c_map;
-	private HashMap<String, Robot> r_map;
+public class ViewRobots extends ShareData{
 	
 	//Passo il frame base come parametro
-	public ViewRobots(JFrame w, HashMap<String, Cluster> c_map, HashMap<String, Robot> r_map){
-		window = w;
-		this.c_map = c_map;
-		this.r_map = r_map;
-		
+	public ViewRobots(){
 		initialize();
 	}
 	
@@ -55,7 +49,7 @@ public class ViewRobots {
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						robots_pnl.setVisible(false);
-						new ViewRobot(window, r_map.get(jb.getText()), c_map, r_map);
+						new ViewRobot(r_map.get(jb.getText()));
 					}});
 		  }
 		  
@@ -72,8 +66,15 @@ public class ViewRobots {
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robots_pnl.setVisible(false);
-				new Dashboard(c_map, r_map);
+				new Dashboard();
 		}});
+		
+
+		JLabel lbl = new JLabel("Ultimo aggiornamento:");
+		panel_list.add(lbl, "pos 480px 10px, width 110, height 15");
+		
+		JLabel lblTime = new JLabel(""+lastUpdate);
+		panel_list.add(lblTime, "pos 480px 30px, width 110, height 15");
 
 	}
 }
