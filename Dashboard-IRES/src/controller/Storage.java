@@ -24,6 +24,7 @@ public class Storage {
 	
 	static public void inizializza(String[] args){
 		con = dbConnect(args);
+		
 		//Procedura di creazione database
 		//*********************************
 		//*Da finire quando ho connessione*
@@ -31,6 +32,17 @@ public class Storage {
 		/*try {
 			Statement create = con.createStatement();
 			String createSQL = "create database dashboard";
+			create.execute(createSQL);
+			createSQL = "use dashboard";
+			create.execute(createSQL);
+			createSQL = "create table finestra_temporale("
+					+ "id int primary key auto_increment,"
+					+ "id_oggetto varchar(7) default \"errore\","
+					+ "sogliaSinistra timestamp default null,"
+					+ "sogliaDestra timestamp default null);";
+			create.execute(createSQL);
+			create.close();
+			con.commit();
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -53,6 +65,10 @@ public class Storage {
 		try {
 		con = DriverManager.getConnection("jdbc:mysql://localhost/?useSSL=true", args[0], args[1]);
 		con.setAutoCommit(false);
+		Statement useDBStatement = con.createStatement();
+		String useDBcommand = "use dashboard";
+		useDBStatement.execute(useDBcommand);
+		con.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -83,7 +99,6 @@ public class Storage {
 			batchUpdate.setTimestamp(1, segnale.getTimestamp());
 			batchUpdate.setString(2, String.valueOf(segnale.getRobotID()));
 			batchUpdate.addBatch();
-			System.out.println("batchUpdateCount:" + batchUpdateCount);
 			if(++batchUpdateCount % batchUpdateSize == 0){
 				//Devo assicurarmi prima di flushare le insert o si creano problemi
 				//del tipo che l'update non trova la riga (che doveva essere inserita
@@ -140,7 +155,6 @@ public class Storage {
 		try {
 			batchUpdate.setTimestamp(1, segnale.getTimestamp());
 			batchUpdate.setString(2, String.valueOf(segnale.getClusterID()));
-			System.out.println("batchUpdateCount:" + batchUpdateCount);
 			if(++batchUpdateCount % batchUpdateSize == 0){
 				//Stesso discorso di chiudiFinestraTemporaleRobot,
 				//devo assicurarmi che le insert siano state fatte prima

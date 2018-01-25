@@ -4,25 +4,17 @@ package controller;
 public class IRES {
 
 	public static void main(String[] args) {
-		GestoreSegnali gs = new GestoreSegnali();
+		//Stabiliamo la connessione con il DB tramite la user e la password
+		//inserite in fase di esecuzione del sistema
 		Storage.inizializza(args);
 		
-		long begin = System.currentTimeMillis();
-		
+		//Inizializziamo il componente GestoreSegnali e lo facciamo partire
+		GestoreSegnali gs = new GestoreSegnali();
 		Thread gsThread = new Thread(gs);
 		gsThread.start();
-		try {
-			gsThread.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
-		long end = System.currentTimeMillis();
 		
-		long timeOfExecution = (end - begin) / 1000L;
 		
-		System.out.println("Tempo di esecuzione: " + (timeOfExecution));
 	}
 
 }

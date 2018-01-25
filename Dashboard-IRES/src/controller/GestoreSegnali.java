@@ -1,16 +1,24 @@
 package controller;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
+import java.net.ServerSocket;
 //import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import model.Cluster;
+import model.Dato;
 import model.FinestraTemporale;
 import model.Robot;
 import model.Segnale;
@@ -19,10 +27,20 @@ public class GestoreSegnali implements Runnable {
 	private HashMap<String, Cluster> clusters;
 	private HashMap<String, Robot> robots;
 	private LinkedList<Segnale> segnali;
+	private ServerSocket serverForDashboards;
+	private LinkedList<Socket> clients;
 	public GestoreSegnali(){
-		clusters = new HashMap<String, Cluster>();
+		this.clusters = new HashMap<String, Cluster>();
+		this.robots = new HashMap<String, Robot>();
 		robots = new HashMap<String, Robot>();
 		segnali = new LinkedList<Segnale>();
+		clients = new LinkedList<Socket>();
+		try {
+			serverForDashboards = new ServerSocket(60012);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private void analizzaSegnale(){
@@ -53,7 +71,6 @@ public class GestoreSegnali implements Runnable {
 				robot.decrementDownSensors();
 				robot.setSensor(segnale.getSensorNumber(), true);
 				if(robot.getDownSensors() == 0){
-					System.out.println("Chiudo finestra temporale Robot #" + robot.getID());
 					Storage.chiudiFinestraTemporaleRobot(segnale);
 					cluster.decrementRobotDown();
 					if(cluster.getRobotDown() == 0){
@@ -77,16 +94,16 @@ public class GestoreSegnali implements Runnable {
 			}
 		}
 	}
-	
+
 	private void calcolaIR(){
-		System.out.println("Inizio calcolo IR");
-		long begin = System.currentTimeMillis();
+		//System.out.println("Inizio calcolo IR");
+		//long begin = System.currentTimeMillis();
 		
 		Timestamp oneHourAgo = new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000));
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		
-		System.out.println("One hour ago: " + oneHourAgo);
-		System.out.println("Now: " + now);
+		//System.out.println("One hour ago: " + oneHourAgo);
+		//System.out.println("Now: " + now);
 		
 		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali();
 		
@@ -123,33 +140,39 @@ public class GestoreSegnali implements Runnable {
 			}
 		}
 		
-		/*
-		 * 
-		 * TODO: invio dati
-		 * 
-		 */
+		//Invio il dato calcolato
+		for(Socket client : clients){
+			try {
+				ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
+				out.writeObject(new Dato(clusters, robots));
+				out.flush();
+				out.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		
 		Storage.rimuoviFinestreInattive(oneHourAgo);
 		
-		long end = System.currentTimeMillis();
+		//long end = System.currentTimeMillis();
 		
-		long timeElapsed = end - begin;
+		//long timeElapsed = end - begin;
 		
-		System.out.println("Per calcolare l'IR dei Robot e dei Cluster ci sono voluti " + timeElapsed / 1000.0 + " secondi");
+		//System.out.println("Per calcolare l'IR dei Robot e dei Cluster ci sono voluti " + timeElapsed / 1000.0 + " secondi");
 		
 		//Stampo l'IR dei primi 500 Robot e dei primi 50 Cluster per controllare un po'
-		int counter = 500;
-		for(String c : robots.keySet()){
-			System.out.println("L\'IR del robot " + c + " è " + robots.get(c).getIR() + "%");
-			if(--counter < 0) break;
-		}
+		//int counter = 500;
+		//for(String c : robots.keySet()){
+		//	System.out.println("L\'IR del robot " + c + " è " + robots.get(c).getIR() + "%");
+		//	if(--counter < 0) break;
+		//}
 		//counter = 100;
-		for(String c : clusters.keySet()){
-			System.out.println("Dati Cluster " + c +" :\n"
-					+ "IR: " + clusters.get(c).getIR() + "%\n"
-					+ "Robot attualmente down: " + clusters.get(c).getRobotDown());
+		//for(String c : clusters.keySet()){
+		//	System.out.println("Dati Cluster " + c +" :\n"
+		//			+ "IR: " + clusters.get(c).getIR() + "%\n"
+		//			+ "Robot attualmente down: " + clusters.get(c).getRobotDown());
 			//if(--counter < 0) break;
-		}
 	}
 	
 	@Override
@@ -160,48 +183,57 @@ public class GestoreSegnali implements Runnable {
 		
 		while(begin < end){*/
 		
-		
+		//Spawniamo il thread che si occupa di ricevere i segnali
 		Thread ricettore = new Thread(new Ricettore());
 		ricettore.start();
-		//Per ora aspettiamo che Ricettore termini e poi lavoriamo con i segnali
-		//In realtà questi processi vanno insieme
-		try {
-			ricettore.join();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
-		System.out.println("Ora inizia l'analisi dei segnali");
+		//Spawniamo il thread che si occupa di accettare la connessione
+		//delle varie Dashboard
+		new Thread(){
+			public void run(){
+				try {
+					while(true){
+					Socket newClient = serverForDashboards.accept();
+					clients.add(newClient);
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		};
 		
-		long begin = System.currentTimeMillis();
+		//Con i due componenti helper istanzianti possiamo occuparci di 
+		//analizzare i segnali
+		System.out.println("Inizio l'analisi dei segnali");
 		
-		int numeroSegnali = segnali.size();
+		long timer = System.currentTimeMillis();
 	
-		while(segnali.size() > 0){
+	
+		while(true){
 			analizzaSegnale();
+			if(System.currentTimeMillis() - timer >= 5000){
+				//Finiamo di effettuare le ultime query se ne rimangono
+				Storage.commitChanges();
+				
+				//Calcolo il dato e lo invio
+				calcolaIR();
+				
+				//Resettiamo il cooldown
+				timer = System.currentTimeMillis();
+			}
 		}
 		
-		//Finiamo di effettuare le ultime query se ne rimangono
-		Storage.commitChanges();
+		
 		
 	
-		long end = System.currentTimeMillis();
+		//long end = System.currentTimeMillis();
 		
-		long timeElapsed = (end - begin);
+		//long timeElapsed = (end - begin);
 		
-		System.out.println("Per analizzare " + numeroSegnali + " segnali ci sono voluti " + timeElapsed / 1000.0 + " secondi");
-		System.out.println("Il numero di Robot registrati è: " + robots.size());
-		/*try {
-		System.out.println("Dormo per 10 secondi");
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+		//System.out.println("Per analizzare " + numeroSegnali + " segnali ci sono voluti " + timeElapsed / 1000.0 + " secondi");
+		//System.out.println("Il numero di Robot registrati è: " + robots.size());
 		
-		
-		calcolaIR();
 	}
 	
 	class Ricettore implements Runnable{
@@ -210,23 +242,26 @@ public class GestoreSegnali implements Runnable {
 			Socket socket;
 			try {
 				socket = new Socket("localhost", 60011);
-				ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-				ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+				
+				OutputStreamWriter outputStream = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
+				BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
 				//Sarebbe per sempre in teoria
 				int counter = 0;
 				
-				Segnale segnale = null;
+				JSONObject segnaleJSON = null;
 				while(true)
 					try{
-						segnale = (Segnale) inputStream.readObject();
-						if(segnale.getClusterID() == null) break;
-						segnali.add(segnale);
+						String jsonText = br.readLine();
+						if(jsonText.equals("B")) break;
+						segnaleJSON = new JSONObject(jsonText);
+						Segnale toAdd = new Segnale(segnaleJSON.getString("robotid"), segnaleJSON.getString("clusterid"), (byte)segnaleJSON.getInt("sensornumber"), segnaleJSON.getBoolean("sensorvalue"), segnaleJSON.getLong("timestamp"));
+						segnali.add(toAdd);
 						System.out.println("Read signal " + "#" + counter++ + " from client " + socket.getLocalAddress());
-					}catch(IOException | ClassNotFoundException e){
+					}catch(IOException | JSONException e){
 						e.printStackTrace();
 					}
-				//Fine ricezione segnali; avviso il server
-				outputStream.writeObject(null);
+				//Fine ricezione segnali; avviso il tester
+				outputStream.write("B\n");
 				outputStream.flush();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
