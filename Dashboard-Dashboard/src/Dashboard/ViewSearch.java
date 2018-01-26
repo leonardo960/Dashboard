@@ -20,7 +20,7 @@ import javax.swing.JTextField;
 
 import net.miginfocom.swing.MigLayout;
 
-public class ViewSearch extends ShareData{
+public class ViewSearch extends ShareData implements Screen{
 	String searched;
 	
 	//Passo il frame base come parametro
@@ -111,9 +111,9 @@ public class ViewSearch extends ShareData{
 			public void actionPerformed(ActionEvent e) {
 				search_pnl.setVisible(false);
 				if(id_searched.getText().substring(0,1).equals("C"))
-					new ViewCluster(c_map.get(searched));
+					currentScreen = new ViewCluster(c_map.get(searched));
 				else
-					new ViewRobot(r_map.get(searched));
+					currentScreen= new ViewRobot(r_map.get(searched));
 			}});
 		
 		JButton btnHome = new JButton("Home");
@@ -122,9 +122,14 @@ public class ViewSearch extends ShareData{
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				search_pnl.setVisible(false);
-				new Dashboard();
+				currentScreen = new Dashboard();
 		}});
 		
+		
+	}
+
+	@Override
+	public void update() {
 		
 	}
 }

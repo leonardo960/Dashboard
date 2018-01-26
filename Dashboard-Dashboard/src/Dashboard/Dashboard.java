@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 
-public class Dashboard extends ShareData{
+public class Dashboard extends ShareData implements Screen{
 	
 	public Dashboard(){
 		initialize();
@@ -35,7 +35,7 @@ public class Dashboard extends ShareData{
 		btn_cluster.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				panel.setVisible(false);
-				new ViewClusters();
+				currentScreen = new ViewClusters();
 			}});
 	
 		JButton btn_robot = new JButton("Controlla robots");
@@ -44,7 +44,7 @@ public class Dashboard extends ShareData{
 		btn_robot.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				panel.setVisible(false);
-				new ViewRobots();
+				currentScreen = new ViewRobots();
 			}});
 		
 		JButton cerca = new JButton("Cerca per ID");
@@ -53,9 +53,14 @@ public class Dashboard extends ShareData{
 		cerca.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				panel.setVisible(false);
-				new ViewSearch();
+				currentScreen = new ViewSearch();
 			}});
 	
+	}
+
+	@Override
+	public void update() {
+		//Nothing to update here
 	}
 
 }

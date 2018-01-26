@@ -3,7 +3,6 @@ package controller;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
@@ -13,12 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import model.ClientWrapper;
 import model.Cluster;
-import model.Dato;
 import model.FinestraTemporale;
 import model.Robot;
 import model.Segnale;
@@ -26,15 +26,15 @@ import model.Segnale;
 public class GestoreSegnali implements Runnable {
 	private HashMap<String, Cluster> clusters;
 	private HashMap<String, Robot> robots;
-	private LinkedList<Segnale> segnali;
+	private ConcurrentLinkedQueue<Segnale> segnali;
 	private ServerSocket serverForDashboards;
-	private LinkedList<Socket> clients;
+	private LinkedList<ClientWrapper> clients;
 	public GestoreSegnali(){
 		this.clusters = new HashMap<String, Cluster>();
 		this.robots = new HashMap<String, Robot>();
 		robots = new HashMap<String, Robot>();
-		segnali = new LinkedList<Segnale>();
-		clients = new LinkedList<Socket>();
+		segnali = new ConcurrentLinkedQueue<Segnale>();
+		clients = new LinkedList<ClientWrapper>();
 		try {
 			serverForDashboards = new ServerSocket(60012);
 		} catch (IOException e) {
@@ -47,7 +47,8 @@ public class GestoreSegnali implements Runnable {
 		if(segnali.isEmpty()){
 			return;
 		}else{
-			Segnale segnale = segnali.removeFirst();
+			//Segnale segnale = segnali.removeFirst();
+			Segnale segnale = segnali.remove();
 			Robot robot = null;
 			Cluster cluster = null;
 			//Riconosciamo il Robot e il Cluster
@@ -139,14 +140,13 @@ public class GestoreSegnali implements Runnable {
 				robots.get(id).setIR(IR);
 			}
 		}
-		
+		System.out.println("Calcolo IR completato. Invio del dato alle Dashboard");
 		//Invio il dato calcolato
-		for(Socket client : clients){
+		for(ClientWrapper client : clients){
 			try {
-				ObjectOutputStream out = new ObjectOutputStream(client.getOutputStream());
-				out.writeObject(new Dato(clusters, robots));
-				out.flush();
-				out.close();
+				client.getClientOut().writeObject(clusters);
+				client.getClientOut().writeObject(robots);
+				client.getClientOut().flush();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -194,14 +194,15 @@ public class GestoreSegnali implements Runnable {
 				try {
 					while(true){
 					Socket newClient = serverForDashboards.accept();
-					clients.add(newClient);
+					clients.add(new ClientWrapper(newClient));
+					System.out.println("Connected to dashboard " + newClient.getLocalAddress());
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-		};
+		}.start();
 		
 		//Con i due componenti helper istanzianti possiamo occuparci di 
 		//analizzare i segnali
@@ -211,8 +212,9 @@ public class GestoreSegnali implements Runnable {
 	
 	
 		while(true){
-			analizzaSegnale();
 			if(System.currentTimeMillis() - timer >= 5000){
+				System.out.println("Inizio calcolo IR");
+				System.out.println("Segnali rimasti pre-calcolo: " + segnali.size());
 				//Finiamo di effettuare le ultime query se ne rimangono
 				Storage.commitChanges();
 				
@@ -221,7 +223,10 @@ public class GestoreSegnali implements Runnable {
 				
 				//Resettiamo il cooldown
 				timer = System.currentTimeMillis();
+				
+				System.out.println("Segnali rimasti post-calcolo:" + segnali.size());
 			}
+			analizzaSegnale();
 		}
 		
 		
@@ -245,8 +250,8 @@ public class GestoreSegnali implements Runnable {
 				
 				OutputStreamWriter outputStream = new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);
 				BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
-				//Sarebbe per sempre in teoria
-				int counter = 0;
+
+				
 				
 				JSONObject segnaleJSON = null;
 				while(true)
@@ -256,7 +261,7 @@ public class GestoreSegnali implements Runnable {
 						segnaleJSON = new JSONObject(jsonText);
 						Segnale toAdd = new Segnale(segnaleJSON.getString("robotid"), segnaleJSON.getString("clusterid"), (byte)segnaleJSON.getInt("sensornumber"), segnaleJSON.getBoolean("sensorvalue"), segnaleJSON.getLong("timestamp"));
 						segnali.add(toAdd);
-						System.out.println("Read signal " + "#" + counter++ + " from client " + socket.getLocalAddress());
+						//System.out.println("Read signal " + "#" + counter++ + " from client " + socket.getLocalAddress());
 					}catch(IOException | JSONException e){
 						e.printStackTrace();
 					}

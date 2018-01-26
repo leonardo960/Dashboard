@@ -3,11 +3,20 @@ package Dashboard;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
+
+import model.Cluster;
+import model.Robot;
+
+
 
 public class ShareData {
 
@@ -15,7 +24,7 @@ public class ShareData {
 	protected static String lastUpdate;
 	protected static HashMap<String, Cluster> c_map;
 	protected static HashMap<String, Robot> r_map;
-	
+	public static Screen currentScreen;
 	public void ShareDatas(){
 		if(window == null){
 			
@@ -42,9 +51,11 @@ public class ShareData {
 		this.c_map = c_map; 
 	}
 	
+	
 	public void setRMap(HashMap<String,Robot> r_map){
 		this.r_map = r_map; 
 	}
+
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -54,13 +65,39 @@ public class ShareData {
 				
 				ShareData sd = new ShareData();
 				
+				new Thread(){
+					public void run(){
+						try {
+							Socket client = new Socket("localhost", 60012);
+							ObjectInputStream in = new ObjectInputStream(client.getInputStream());
+							while(true){
+								HashMap<String, Cluster> clusters = (HashMap<String, Cluster>) in.readObject();
+								HashMap<String, Robot> robots = (HashMap<String, Robot>) in.readObject();
+								c_map = clusters;
+								r_map = robots;
+								lastUpdate = new SimpleDateFormat("HH:mm:ss").format(new Date());
+								currentScreen.update();
+							}
+						} catch (UnknownHostException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}.start();
+				
 				try {
 					
 					//Oggetti di prova
 					HashMap<String, Cluster> c_map = new HashMap<String, Cluster>();
 					HashMap<String, Robot> r_map = new HashMap<String, Robot>();
 					
-					Robot r = new Robot("xr3", "yr3");
+					/*Robot r = new Robot("xr3", "yr3");
 					Robot r2 = new Robot("xr4", "yr4");
 					Robot r3 = new Robot("xr5", "yr3");
 					Robot r4 = new Robot("xr6", "yr4");
@@ -121,13 +158,13 @@ public class ShareData {
 					r_map.put("xr16", r14);
 					r_map.put("xr17", r15);
 					r_map.put("xr18", r16);
-					
+					*/
 					sd.setCMap(c_map);
 					sd.setRMap(r_map);
 					sd.ShareDatas();
 					
 					sd.updateTime();
-					new Dashboard();
+					currentScreen = new Dashboard();
 					
 				} catch (Exception e) {
 					e.printStackTrace();

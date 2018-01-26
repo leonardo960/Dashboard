@@ -13,11 +13,17 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.json.JSONException;
+
+import model.Cluster;
+import model.Robot;
 import net.miginfocom.swing.MigLayout;
 
-public class ViewCluster extends ShareData{
+public class ViewCluster extends ShareData implements Screen{
 	
 	private Cluster c;
+	private JLabel lblTime;
+	private JLabel ir_cls;
 	
 	public ViewCluster(Cluster c){
 		this.c = c;
@@ -44,7 +50,7 @@ public class ViewCluster extends ShareData{
 		lbl.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
 		cluster_pnl.add(lbl, "pos 265px 10px, width 115, height 15");
 		
-		JLabel lblTime = new JLabel(""+lastUpdate);
+		lblTime = new JLabel(""+lastUpdate);
 		lblTime.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
 		cluster_pnl.add(lblTime, "pos 430px 10px, width 110, height 15");
 		
@@ -60,7 +66,7 @@ public class ViewCluster extends ShareData{
 		ir.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(ir, "pos 20px 100px, width 100, height 30");
 		
-		JLabel ir_cls = new JLabel(""+c.getIR());
+		ir_cls = new JLabel(""+ c.getIR());
 		ir_cls.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(ir_cls, "pos 230px 100px, width 100, height 30");
 		
@@ -87,7 +93,7 @@ public class ViewCluster extends ShareData{
 		sensor1.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor1, "pos 20px 150px, width 100, height 30");
 		
-		JLabel num_s1 = new JLabel(""+s1);
+		JLabel num_s1 = new JLabel("" + s1);
 		num_s1.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s1, "pos 300px 150px, width 100, height 30");
 		
@@ -223,13 +229,15 @@ public class ViewCluster extends ShareData{
 			pos = 40 * i;
 			i++;
 			panel_list.add(jb, "pos 0px " + pos +"px, width 200, height 30");
+			
 			if(r_map.get(jb.getText()).getIR()>=40)
 				jb.setBackground(Color.RED);
+	
 			jb.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					pnl.setVisible(false);
 					new ViewRobot(r_map.get(jb.getText()));
-					}});
+				}});
 		}
 		
 		cluster_pnl.add(panel_list, "pos 20px 550px");
@@ -248,5 +256,11 @@ public class ViewCluster extends ShareData{
 				pnl.setVisible(false);
 				new Dashboard();
 		}});
+	}
+
+	@Override
+	public void update() {
+		// TODO Auto-generated method stub
+		
 	}
 }

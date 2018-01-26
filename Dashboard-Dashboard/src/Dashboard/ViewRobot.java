@@ -3,19 +3,26 @@ package Dashboard;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashMap;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import model.Robot;
 import net.miginfocom.swing.MigLayout;
 
-public class ViewRobot extends ShareData{
+public class ViewRobot extends ShareData implements Screen{
 	
 	private Robot r;
-	
+	private JLabel lblTime;
+	private JLabel ir_rbt;
+	private JLabel s1;
+	private JLabel s2;
+	private JLabel s3;
+	private JLabel s4;
+	private JLabel s5;
+	private JLabel s6;
+	private JLabel s7;
 	public ViewRobot(Robot r){
 		this.r = r;
 		
@@ -38,7 +45,7 @@ public class ViewRobot extends ShareData{
 		lbl.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
 		robot_pnl.add(lbl, "pos 265px 10px, width 115, height 15");
 		
-		JLabel lblTime = new JLabel(""+lastUpdate);
+		lblTime = new JLabel(""+lastUpdate);
 		lblTime.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
 		robot_pnl.add(lblTime, "pos 430px 10px, width 110, height 15");
 		
@@ -54,7 +61,7 @@ public class ViewRobot extends ShareData{
 		ir.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(ir, "pos 20px 80px, width 100, height 30");
 		
-		JLabel ir_rbt = new JLabel(""+r.getIR());
+		ir_rbt = new JLabel(""+ r.getIR());
 		ir_rbt.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(ir_rbt, "pos 230px 80px, width 100, height 30");
 		
@@ -62,7 +69,7 @@ public class ViewRobot extends ShareData{
 		sensor1.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor1, "pos 20px 130px, width 100, height 30");
 		
-		JLabel s1 = new JLabel();
+		s1 = new JLabel();
 		if(r.getSensorValue((byte) 0))
 			s1.setText("UP");
 		else
@@ -74,7 +81,7 @@ public class ViewRobot extends ShareData{
 		sensor2.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor2, "pos 20px 180px, width 100, height 30");
 		
-		JLabel s2 = new JLabel();
+		s2 = new JLabel();
 		if(r.getSensorValue((byte) 1))
 			s2.setText("UP");
 		else
@@ -86,7 +93,7 @@ public class ViewRobot extends ShareData{
 		sensor3.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor3, "pos 20px 230px, width 100, height 30");
 		
-		JLabel s3 = new JLabel();
+		s3 = new JLabel();
 		if(r.getSensorValue((byte) 2))
 			s3.setText("UP");
 		else
@@ -98,7 +105,7 @@ public class ViewRobot extends ShareData{
 		sensor4.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor4, "pos 20px 280px, width 100, height 30");
 		
-		JLabel s4 = new JLabel();
+		s4 = new JLabel();
 		if(r.getSensorValue((byte) 3))
 			s4.setText("UP");
 		else
@@ -110,7 +117,7 @@ public class ViewRobot extends ShareData{
 		sensor5.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor5, "pos 20px 330px, width 100, height 30");
 		
-		JLabel s5 = new JLabel();
+		s5 = new JLabel();
 		if(r.getSensorValue((byte) 4))
 			s5.setText("UP");
 		else
@@ -122,7 +129,7 @@ public class ViewRobot extends ShareData{
 		sensor6.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor6, "pos 20px 380px, width 100, height 30");
 		
-		JLabel s6 = new JLabel();
+		s6 = new JLabel();
 		if(r.getSensorValue((byte) 5))
 			s6.setText("UP");
 		else
@@ -134,7 +141,7 @@ public class ViewRobot extends ShareData{
 		sensor7.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(sensor7, "pos 20px 430px, width 100, height 30");
 		
-		JLabel s7 = new JLabel();
+		s7 = new JLabel();
 		if(r.getSensorValue((byte) 6))
 			s7.setText("UP");
 		else
@@ -159,6 +166,56 @@ public class ViewRobot extends ShareData{
 				robot_pnl.setVisible(false);
 				new ViewCluster(c_map.get(r.getCluster()));
 		}});
+	}
+
+	@Override
+	public void update() {
+		ir_rbt.setText(""+ r.getIR());
+		
+		if(r.getSensorValue((byte) 0)){
+			s1.setText("UP");
+		}else{
+			s1.setText("DOWN");
+		}
+		
+		if(r.getSensorValue((byte) 1)){
+			s2.setText("UP");
+		}else{
+			s2.setText("DOWN");
+		}
+		
+		if(r.getSensorValue((byte) 2)){
+			s3.setText("UP");
+		}else{
+			s3.setText("DOWN");
+		}
+		
+		if(r.getSensorValue((byte) 3)){
+			s4.setText("UP");
+		}else{
+			s4.setText("DOWN");
+		}
+		
+		if(r.getSensorValue((byte) 4)){
+			s5.setText("UP");
+		}else{
+			s5.setText("DOWN");
+		}
+		
+		if(r.getSensorValue((byte) 5)){
+			s6.setText("UP");
+		}else{
+			s6.setText("DOWN");
+		}
+		
+		if(r.getSensorValue((byte) 6)){
+			s7.setText("UP");
+		}else{
+			s7.setText("DOWN");
+		}
+		
+		
+		lblTime.setText(lastUpdate);
 	}
 	
 		

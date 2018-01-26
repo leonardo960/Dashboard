@@ -13,6 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import model.Cluster;
+import model.Robot;
 import net.miginfocom.swing.MigLayout;
 
 public class RobotListSensor extends ShareData{
