@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -24,7 +25,18 @@ public class ViewCluster extends ShareData implements Screen{
 	private Cluster c;
 	private JLabel lblTime;
 	private JLabel ir_cls;
-	
+	private int s1 = 0, s2 = 0, s3 = 0, s4 = 0, s5 = 0, s6 = 0, s7 = 0;
+	private JLabel num_s1;
+	private JLabel num_s2;
+	private JLabel num_s3;
+	private JLabel num_s4;
+	private JLabel num_s5;
+	private JLabel num_s6;
+	private JLabel num_s7;
+	private ArrayList<JButton> robots_btns;
+	private JPanel panel_list;
+	private JPanel pnl;
+	private JLabel lista_rbt;
 	public ViewCluster(Cluster c){
 		this.c = c;
 		initialize();
@@ -32,7 +44,7 @@ public class ViewCluster extends ShareData implements Screen{
 	
 	public void initialize(){
 		
-		JPanel pnl = new JPanel();
+		pnl = new JPanel();
 		pnl.setLayout(new MigLayout());
 		pnl.setBounds(0,0,700,500);
 		pnl.setVisible(true);
@@ -66,11 +78,17 @@ public class ViewCluster extends ShareData implements Screen{
 		ir.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(ir, "pos 20px 100px, width 100, height 30");
 		
-		ir_cls = new JLabel(""+ c.getIR());
+		ir_cls = new JLabel(""+ c.getIR() + "%");
 		ir_cls.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(ir_cls, "pos 230px 100px, width 100, height 30");
 		
-		int s1 = 0, s2 = 0, s3 = 0, s4 = 0, s5 = 0, s6 = 0, s7 = 0;
+		s1 = 0;
+		s2 = 0;
+		s3 = 0;
+		s4 = 0;
+		s5 = 0;
+		s6 = 0;
+		s7 = 0;
 
 		for(Robot r: c.getRobots()){
 			if(!r.getSensorValue((byte) 0))
@@ -93,7 +111,7 @@ public class ViewCluster extends ShareData implements Screen{
 		sensor1.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor1, "pos 20px 150px, width 100, height 30");
 		
-		JLabel num_s1 = new JLabel("" + s1);
+		num_s1 = new JLabel("" + s1);
 		num_s1.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s1, "pos 300px 150px, width 100, height 30");
 		
@@ -103,14 +121,14 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 0);
+				currentScreen = new RobotListSensor(c, 0);
 		}});
 		
 		JLabel sensor2 = new JLabel("Robots con sensore 2 down: ");
 		sensor2.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor2, "pos 20px 200px, width 100, height 30");
 		
-		JLabel num_s2 = new JLabel(""+s2);
+		num_s2 = new JLabel(""+s2);
 		num_s2.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s2, "pos 300px 200px, width 100, height 30");
 		
@@ -120,14 +138,14 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 1);
+				currentScreen = new RobotListSensor(c, 1);
 		}});
 		
 		JLabel sensor3 = new JLabel("Robots con sensore 3 down: ");
 		sensor3.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor3, "pos 20px 250px, width 100, height 30");
 		
-		JLabel num_s3 = new JLabel(""+s3);
+		num_s3 = new JLabel(""+s3);
 		num_s3.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s3, "pos 300px 250px, width 100, height 30");
 		
@@ -137,14 +155,14 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 2);
+				currentScreen = new RobotListSensor(c, 2);
 		}});
 		
 		JLabel sensor4 = new JLabel("Robots con sensore 4 down: ");
 		sensor4.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor4, "pos 20px 300px, width 100, height 30");
 		
-		JLabel num_s4 = new JLabel(""+s4);
+		num_s4 = new JLabel(""+s4);
 		num_s4.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s4, "pos 300px 300px, width 100, height 30");
 		
@@ -154,14 +172,14 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 3);
+				currentScreen = new RobotListSensor(c, 3);
 		}});
 		
 		JLabel sensor5 = new JLabel("Robots con sensore 5 down: ");
 		sensor5.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor5, "pos 20px 350px, width 100, height 30");
 		
-		JLabel num_s5 = new JLabel(""+s5);
+		num_s5 = new JLabel(""+s5);
 		num_s5.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s5, "pos 300px 350px, width 100, height 30");
 		
@@ -171,14 +189,14 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 4);
+				currentScreen = new RobotListSensor(c, 4);
 		}});
 		
 		JLabel sensor6 = new JLabel("Robots con sensore 6 down: ");
 		sensor6.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor6, "pos 20px 400px, width 100, height 30");
 		
-		JLabel num_s6 = new JLabel(""+s6);
+		num_s6 = new JLabel(""+s6);
 		num_s6.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s6, "pos 300px 400px, width 100, height 30");
 		
@@ -188,14 +206,14 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt6.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 5);
+				currentScreen = new RobotListSensor(c, 5);
 		}});
 
 		JLabel sensor7 = new JLabel("Robots con sensore 7 down: ");
 		sensor7.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(sensor7, "pos 20px 450px, width 100, height 30");
 		
-		JLabel num_s7 = new JLabel(""+s7);
+		num_s7 = new JLabel(""+s7);
 		num_s7.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(num_s7, "pos 300px 450px, width 100, height 30");
 		
@@ -205,23 +223,23 @@ public class ViewCluster extends ShareData implements Screen{
 		show_rbt7.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new RobotListSensor(c, 6);
+				currentScreen = new RobotListSensor(c, 6);
 		}});
 		
-		JLabel lista_rbt = new JLabel("Robots nel Cluster");
+		lista_rbt = new JLabel("Robots nel Cluster " + "#" + c.getRobots().size());
 		lista_rbt.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		cluster_pnl.add(lista_rbt, "pos 20px 500px, width 100, height 30");
 		
 		//Pannello che conterrà la lista di bottoni
-		JPanel panel_list = new JPanel();
+		panel_list = new JPanel();
 		panel_list.setLayout(new MigLayout());
 		
 		//Lista di bottoni, uno per ogni robot nel cluster
-		ArrayList<JButton> robots_btns = new ArrayList<JButton>();
+		robots_btns = new ArrayList<JButton>();
 		
 		//For che aggiunge i bottoni alla lista, attribuendogli l'ID del robot
 		for(Robot r: c.getRobots())
-			robots_btns.add(new JButton("" + r.getID()));
+			robots_btns.add(new JButton(r.getID() + " IR: " + r.getIR() + "%"));
 		
 		//For che aggiunge i bottoni al panel
 		int i = 0, pos = 0;
@@ -230,13 +248,13 @@ public class ViewCluster extends ShareData implements Screen{
 			i++;
 			panel_list.add(jb, "pos 0px " + pos +"px, width 200, height 30");
 			
-			if(r_map.get(jb.getText()).getIR()>=40)
+			if(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))).getIR()>=40)
 				jb.setBackground(Color.RED);
 	
 			jb.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					pnl.setVisible(false);
-					new ViewRobot(r_map.get(jb.getText()));
+					currentScreen = new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
 				}});
 		}
 		
@@ -254,13 +272,84 @@ public class ViewCluster extends ShareData implements Screen{
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pnl.setVisible(false);
-				new Dashboard();
+				currentScreen = new Dashboard();
 		}});
 	}
 
 	@Override
 	public void update() {
-		// TODO Auto-generated method stub
+		String newClusterObjID = c.getID();
+		c = c_map.get(newClusterObjID);
 		
+		ir_cls.setText("" + c.getIR() + "%");
+		s1 = 0;
+		s2 = 0;
+		s3 = 0;
+		s4 = 0;
+		s5 = 0;
+		s6 = 0;
+		s7 = 0;
+		for(Robot r: c.getRobots()){
+			if(!r.getSensorValue((byte) 0))
+				s1++;
+			if(!r.getSensorValue((byte) 1))
+				s2++;
+			if(!r.getSensorValue((byte) 2))
+				s3++;
+			if(!r.getSensorValue((byte) 3))
+				s4++;
+			if(!r.getSensorValue((byte) 4))
+				s5++;
+			if(!r.getSensorValue((byte) 5))
+				s6++;
+			if(!r.getSensorValue((byte) 6))
+				s7++;
+		}
+		num_s1.setText(""+s1);
+		num_s2.setText(""+s2);
+		num_s3.setText(""+s3);
+		num_s4.setText(""+s4);
+		num_s5.setText(""+s5);
+		num_s6.setText(""+s6);
+		num_s7.setText(""+s7);
+		
+		if(c.getRobots().size() > robots_btns.size()){
+			LinkedList<Robot> newRobots = new LinkedList<Robot>();
+			for(Robot newRobot : c.getRobots()){
+				boolean trovato = false;
+				for(JButton jb : robots_btns){
+					if(jb.getText().contains(newRobot.getID())){
+						trovato = true;
+						break;
+					}
+				}
+				if(!trovato){
+					newRobots.add(newRobot);
+				}
+			}
+			int i = 0, pos = 0;
+			for(Robot toAdd : newRobots){
+				JButton jb = new JButton(toAdd.getID() + " IR: "+ toAdd.getIR() + "%");
+				robots_btns.add(jb);
+				pos = 40 * i;
+				i++;
+				panel_list.add(jb, "pos 0px " + pos +"px, width 200, height 30");
+				jb.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						pnl.setVisible(false);
+						currentScreen = new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
+					}
+				});
+			}
+		}else{
+			for(JButton jb : robots_btns){
+				Robot r = r_map.get(jb.getText().substring(0, jb.getText().indexOf(" ")));
+				jb.setText(r.getID() + " IR: " + r.getIR() + "%");
+			}
+		}
+		
+		lista_rbt.setText("Robots nel Cluster " + "#" + c.getRobots().size());
+		
+		lblTime.setText(lastUpdate);
 	}
 }

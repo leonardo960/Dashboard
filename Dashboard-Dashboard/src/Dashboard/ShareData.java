@@ -77,6 +77,7 @@ public class ShareData {
 								r_map = robots;
 								lastUpdate = new SimpleDateFormat("HH:mm:ss").format(new Date());
 								currentScreen.update();
+								
 							}
 						} catch (UnknownHostException e) {
 							// TODO Auto-generated catch block

@@ -61,7 +61,7 @@ public class ViewRobot extends ShareData implements Screen{
 		ir.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(ir, "pos 20px 80px, width 100, height 30");
 		
-		ir_rbt = new JLabel(""+ r.getIR());
+		ir_rbt = new JLabel(""+ r.getIR() + "%");
 		ir_rbt.setFont(new Font("Segoe UI", Font.BOLD | Font.ITALIC, 16));
 		robot_pnl.add(ir_rbt, "pos 230px 80px, width 100, height 30");
 		
@@ -155,7 +155,7 @@ public class ViewRobot extends ShareData implements Screen{
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robot_pnl.setVisible(false);
-				new Dashboard();
+				currentScreen = new Dashboard();
 		}});
 		
 		JButton btnCluster = new JButton("Cluster");
@@ -164,13 +164,15 @@ public class ViewRobot extends ShareData implements Screen{
 		btnCluster.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robot_pnl.setVisible(false);
-				new ViewCluster(c_map.get(r.getCluster()));
+				currentScreen = new ViewCluster(c_map.get(r.getCluster()));
 		}});
 	}
 
 	@Override
 	public void update() {
-		ir_rbt.setText(""+ r.getIR());
+		String newRobotObjID = r.getID();
+		r = r_map.get(newRobotObjID);
+		ir_rbt.setText(""+ r.getIR() + "%");
 		
 		if(r.getSensorValue((byte) 0)){
 			s1.setText("UP");

@@ -16,14 +16,14 @@ import org.json.JSONObject;
 import model.Segnale;
 
 
-public class Main {
+public class Tester {
 	private static LinkedList<Robot> robots;
 	private static Random rand;
 	private static int iterazioni;
 	private static int segnaliPerIterazione;
 	
 	public static void main(String[] args){
-		iterazioni = 1;
+		iterazioni = 5;
 		segnaliPerIterazione = 90000;
 		robots = new LinkedList<Robot>();	
 		rand = new Random();
@@ -50,6 +50,7 @@ public class Main {
 			//OutputStreamWriter outputStream = new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8);
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 			bw.flush();
+			int signalsSent = 0;
 			for(int j = 0; j < iterazioni; j++){
 				long begin = System.currentTimeMillis();
 					for(int i = 0; i < segnaliPerIterazione; i++){
@@ -66,6 +67,7 @@ public class Main {
 									json.put("timestamp", segnale.getTimestamp().getTime());
 									json.put("sensorvalue", segnale.getValue());
 									bw.write(json.toString().concat("\n"));
+									signalsSent++;
 									robot.setSensor(z, true);
 									robot.decrementDownSensors();
 									System.out.println("Sent maintenance signal of iteration #" + i);
@@ -80,12 +82,15 @@ public class Main {
 						json.put("timestamp", signalToSend.getTimestamp().getTime());
 						json.put("sensorvalue", signalToSend.getValue());
 						bw.write(json.toString().concat("\n"));
+						signalsSent++;
 						System.out.println("Chunk #" + j + " - " + "Signal #" + i + " sent to Client #" + client.getLocalAddress());
 						}
 					}
 					
 				long end = System.currentTimeMillis();
 				
+				System.out.println("Per inviare " + signalsSent + " segnali ci sono voluti " + (end - begin) + " secondi");
+				signalsSent = 0;
 				if((end - begin) < 60000L){
 					try {
 						Thread.sleep(60000L - (end - begin));

@@ -17,10 +17,13 @@ import model.Cluster;
 import model.Robot;
 import net.miginfocom.swing.MigLayout;
 
-public class RobotListSensor extends ShareData{
+public class RobotListSensor extends ShareData implements Screen{
 	private Cluster c;
 	private int sensor;
-	
+	private ArrayList<JButton> robots_btns;
+	private JPanel panel_list;
+	private JPanel robots_list_pnl;
+	private JLabel lblTime;
 	//Passo il frame base come parametro
 	public RobotListSensor(Cluster c, int sensor){
 		this.c = c;
@@ -31,35 +34,35 @@ public class RobotListSensor extends ShareData{
 	
 	public void initialize(){
 		
-		JPanel robots_list_pnl = new JPanel();
+		robots_list_pnl = new JPanel();
 		robots_list_pnl.setLayout(new MigLayout());
 		robots_list_pnl.setBounds(0,0,700,500);
 		robots_list_pnl.setVisible(true);
 		window.getContentPane().add(robots_list_pnl);
 		
 		//Pannello che conterrà la lista di bottoni
-		JPanel panel_list = new JPanel();
+		panel_list = new JPanel();
 		panel_list.setLayout(new MigLayout("center center, wrap, gapy 5"));
 		
 		//Lista di bottoni, uno per ogni robot
-		ArrayList<JButton> robots_btns = new ArrayList<JButton>();
+		robots_btns = new ArrayList<JButton>();
 		
 		//For che aggiunge i bottoni alla lista, attribuendogli l'ID del robot
 		for(Robot r: c.getRobots()){
 			if(!r.getSensorValue((byte) sensor))
-					robots_btns.add(new JButton(r.getID()));
+					robots_btns.add(new JButton(r.getID() + " IR: " + r.getIR() + "%"));
 			}
 		 
 		
 		//For che aggiunge i bottoni al panel
 		for(JButton jb: robots_btns){
-			if(r_map.get(jb.getText()).getIR()>=40)
+			if(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))).getIR()>=40)
 				jb.setBackground(Color.red);
 		  		panel_list.add(jb, "width 200, height 30");
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						robots_list_pnl.setVisible(false);
-						new ViewRobot(r_map.get(jb.getText()));
+						currentScreen = new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
 					}});
 		  }
 		  
@@ -76,7 +79,7 @@ public class RobotListSensor extends ShareData{
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robots_list_pnl.setVisible(false);
-				new Dashboard();
+				currentScreen = new Dashboard();
 		}});
 		
 		JButton btnBack = new JButton("Indietro");
@@ -85,15 +88,45 @@ public class RobotListSensor extends ShareData{
 		btnBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				robots_list_pnl.setVisible(false);
-				new ViewCluster(c);
+				currentScreen = new ViewCluster(c);
 		}});
 		
 
 		JLabel lbl = new JLabel("Ultimo aggiornamento:");
 		panel_list.add(lbl, "pos 480px 10px, width 110, height 15");
 		
-		JLabel lblTime = new JLabel(""+lastUpdate);
+		lblTime = new JLabel(""+lastUpdate);
 		panel_list.add(lblTime, "pos 480px 30px, width 110, height 15");
 
+	}
+
+	@Override
+	public void update() {
+		String newClusterObjID = c.getID();
+		c = c_map.get(newClusterObjID);
+		
+		for(JButton jb : robots_btns){
+			panel_list.remove(jb);
+		}
+		
+		robots_btns.clear();
+		
+		for(Robot r: c.getRobots()){
+			if(!r.getSensorValue((byte) sensor))
+					robots_btns.add(new JButton(r.getID() + " IR: " + r.getIR() + "%"));
+			}
+		
+		for(JButton jb: robots_btns){
+			if(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))).getIR()>=40)
+				jb.setBackground(Color.red);
+		  		panel_list.add(jb, "width 200, height 30");
+				jb.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						robots_list_pnl.setVisible(false);
+						currentScreen = new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
+					}});
+		  }
+		
+		lblTime.setText(lastUpdate);
 	}
 }

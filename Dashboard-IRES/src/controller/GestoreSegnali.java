@@ -9,9 +9,13 @@ import java.net.ServerSocket;
 //import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.json.JSONException;
@@ -24,17 +28,52 @@ import model.Robot;
 import model.Segnale;
 
 public class GestoreSegnali implements Runnable {
-	private HashMap<String, Cluster> clusters;
-	private HashMap<String, Robot> robots;
+	private ConcurrentHashMap<String, Cluster> clusters;
+	private ConcurrentHashMap<String, Robot> robots;
 	private ConcurrentLinkedQueue<Segnale> segnali;
 	private ServerSocket serverForDashboards;
 	private LinkedList<ClientWrapper> clients;
-	public GestoreSegnali(){
-		this.clusters = new HashMap<String, Cluster>();
-		this.robots = new HashMap<String, Robot>();
-		robots = new HashMap<String, Robot>();
+	private Thread IRHandler;
+	//private long timer;
+	public GestoreSegnali(String[] args){
+		clusters = new ConcurrentHashMap<String, Cluster>();
+		robots = new ConcurrentHashMap<String, Robot>();
 		segnali = new ConcurrentLinkedQueue<Segnale>();
 		clients = new LinkedList<ClientWrapper>();
+		IRHandler = new Thread(){
+			private Connection con;
+			public void run(){
+				try {
+					Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				
+				try {
+					con = DriverManager.getConnection("jdbc:mysql://localhost/?useSSL=true", args[0], args[1]);
+					con.createStatement().execute("use dashboard");
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				while(true){
+					System.out.println("Inizio calcolo e invio IR");
+					//System.out.println("Segnali rimasti pre-calcolo e invio: " + segnali.size());
+					//Finiamo di effettuare le ultime query se ne rimangono
+					Storage.commitChanges();
+					
+					//Calcolo il dato e lo invio
+					calcolaIR(con);
+					
+					//Resettiamo il cooldown
+					//timer = System.currentTimeMillis();
+					
+					//System.out.println("Segnali rimasti post-calcolo e invio:" + segnali.size());
+				}
+			}
+		};
+		IRHandler.start();
 		try {
 			serverForDashboards = new ServerSocket(60012);
 		} catch (IOException e) {
@@ -96,7 +135,7 @@ public class GestoreSegnali implements Runnable {
 		}
 	}
 
-	private void calcolaIR(){
+	private void calcolaIR(Connection con){
 		//System.out.println("Inizio calcolo IR");
 		//long begin = System.currentTimeMillis();
 		
@@ -105,9 +144,9 @@ public class GestoreSegnali implements Runnable {
 		
 		//System.out.println("One hour ago: " + oneHourAgo);
 		//System.out.println("Now: " + now);
-		
-		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali();
-		
+		System.out.println("Inizio recupero finestre dal db");
+		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali(con);
+		System.out.println("Fine recupero finestre dal db");
 		long downTime = 0;
 		for(String id : finestreTemporali.keySet()){
 			downTime = 0;
@@ -122,7 +161,6 @@ public class GestoreSegnali implements Runnable {
 					downTime += now.getTime()/1000L - ft.getSogliaSinistra().getTime()/1000L;
 				}
 			}
-			//if(clusters.containsKey(id)) System.out.println(downTime);
 			double preciseDownTime = downTime / 36.0;
 			
 			//Tronco fino alla prima cifra decimale
@@ -144,16 +182,20 @@ public class GestoreSegnali implements Runnable {
 		//Invio il dato calcolato
 		for(ClientWrapper client : clients){
 			try {
-				client.getClientOut().writeObject(clusters);
-				client.getClientOut().writeObject(robots);
+				HashMap<String, Robot> r_clone = new HashMap<String, Robot>(robots);
+				HashMap<String, Cluster> c_clone = new HashMap<String, Cluster>(clusters);
+				client.getClientOut().writeObject(c_clone);
+				client.getClientOut().writeObject(r_clone);
 				client.getClientOut().flush();
+				client.getClientOut().reset();
+				System.out.println("Dato inviato.");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
-		Storage.rimuoviFinestreInattive(oneHourAgo);
+		//Storage.rimuoviFinestreInattive(oneHourAgo);
 		
 		//long end = System.currentTimeMillis();
 		
@@ -206,27 +248,28 @@ public class GestoreSegnali implements Runnable {
 		
 		//Con i due componenti helper istanzianti possiamo occuparci di 
 		//analizzare i segnali
-		System.out.println("Inizio l'analisi dei segnali");
+		//System.out.println("Inizio l'analisi dei segnali");
 		
-		long timer = System.currentTimeMillis();
-	
-	
-		while(true){
-			if(System.currentTimeMillis() - timer >= 5000){
-				System.out.println("Inizio calcolo IR");
-				System.out.println("Segnali rimasti pre-calcolo: " + segnali.size());
-				//Finiamo di effettuare le ultime query se ne rimangono
-				Storage.commitChanges();
-				
-				//Calcolo il dato e lo invio
-				calcolaIR();
-				
-				//Resettiamo il cooldown
-				timer = System.currentTimeMillis();
-				
-				System.out.println("Segnali rimasti post-calcolo:" + segnali.size());
+		//timer = System.currentTimeMillis();
+		
+		synchronized(this){
+			try {
+			Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
+		
+		while(true){
 			analizzaSegnale();
+			/*if(System.currentTimeMillis() - timer >= 10000){
+				if(IRHandler.getState() == Thread.State.WAITING){
+					synchronized(IRHandler){
+						IRHandler.notify();
+					}
+				}
+			}*/
 		}
 		
 		
@@ -268,6 +311,8 @@ public class GestoreSegnali implements Runnable {
 				//Fine ricezione segnali; avviso il tester
 				outputStream.write("B\n");
 				outputStream.flush();
+				
+				System.out.println("Stop ricezione segnali");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

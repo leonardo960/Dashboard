@@ -9,7 +9,7 @@ public class IRES {
 		Storage.inizializza(args);
 		
 		//Inizializziamo il componente GestoreSegnali e lo facciamo partire
-		GestoreSegnali gs = new GestoreSegnali();
+		GestoreSegnali gs = new GestoreSegnali(args);
 		Thread gsThread = new Thread(gs);
 		gsThread.start();
 		

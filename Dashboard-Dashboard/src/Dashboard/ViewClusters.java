@@ -60,7 +60,7 @@ public class ViewClusters extends ShareData implements Screen{
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						clusters_pnl.setVisible(false);
-						new ViewCluster(c_map.get(jb.getText()));
+						currentScreen = new ViewCluster(c_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
 					}
 				});
 		}
@@ -77,7 +77,7 @@ public class ViewClusters extends ShareData implements Screen{
 		btnHome.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				clusters_pnl.setVisible(false);
-				new Dashboard();
+				currentScreen = new Dashboard();
 		}});
 		
 
@@ -106,13 +106,13 @@ public class ViewClusters extends ShareData implements Screen{
 				}
 			}
 			for(Cluster toAdd : newClusters){
-				JButton jb = new JButton(toAdd.getID() + " IR: "+ c_map.get(toAdd.getID()).getIR() + "%");
+				JButton jb = new JButton(toAdd.getID() + " IR: " + toAdd.getIR() + "%");
 				clusters_btns.add(jb);
 				panel_list.add(jb, "width 200, height 30");
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						clusters_pnl.setVisible(false);
-						new ViewCluster(c_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
+						currentScreen = new ViewCluster(c_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
 					}
 				});
 			}

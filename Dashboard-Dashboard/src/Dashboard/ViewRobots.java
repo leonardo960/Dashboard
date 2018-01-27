@@ -57,7 +57,7 @@ public class ViewRobots extends ShareData implements Screen{
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						robots_pnl.setVisible(false);
-						new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
+						currentScreen = new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
 					}});
 		  }
 		}
@@ -103,13 +103,13 @@ public class ViewRobots extends ShareData implements Screen{
 				}
 			}
 			for(Robot toAdd : newRobots){
-				JButton jb = new JButton(toAdd.getID() + " IR: "+ r_map.get(toAdd.getID()).getIR() + "%");
+				JButton jb = new JButton(toAdd.getID() + " IR: "+ toAdd.getIR() + "%");
 				robots_btns.add(jb);
 				panel_list.add(jb, "width 200, height 30");
 				jb.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						robots_pnl.setVisible(false);
-						new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
+						currentScreen = new ViewRobot(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))));
 					}
 				});
 			}
