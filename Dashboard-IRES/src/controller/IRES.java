@@ -12,9 +12,6 @@ public class IRES {
 		GestoreSegnali gs = new GestoreSegnali(args);
 		Thread gsThread = new Thread(gs);
 		gsThread.start();
-		
-		
-		
 	}
 
 }

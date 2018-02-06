@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import model.Segnale;
@@ -33,6 +34,8 @@ public class Storage {
 	static private AtomicInteger workingBatch;
 	static private AtomicInteger toBeFlushed;
 	static private int batchesNum;
+	static private Thread flusher;
+	static public AtomicBoolean isDatabaseDown;
 	static public void inizializza(String[] args){
 		//con = dbConnect(args);
 		
@@ -55,7 +58,8 @@ public class Storage {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}*/
-		new Thread(){
+		isDatabaseDown = new AtomicBoolean(false);
+		flusher = new Thread(){
 			public void run(){
 				con = dbConnect(args);
 				batchInsertCount = 0;
@@ -98,15 +102,32 @@ public class Storage {
 							flushChecks.set(toBeFlushed.get(), false);
 							toBeFlushed.set((toBeFlushed.get() + 1) % batchesNum);
 						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							//Database disconnected
+							isDatabaseDown.set(true);
+							System.out.println("Database disconnected...");
+							while(true){
+								try {
+									con.createStatement().execute("select 1");
+									isDatabaseDown.set(false);
+									break;
+								} catch (SQLException e1) {
+									//Database still down
+									System.out.println("Database still down; attempting to reconnect in 5s..");
+									try {
+										Thread.sleep(5000);
+									} catch (InterruptedException e2) {
+										// TODO Auto-generated catch block
+										e2.printStackTrace();
+									}
+								}
+							}
 						}
 					}
 				}
 			}
 			
-		}.start();
-		
+		};
+		flusher.start();
 	}
 	static private Connection dbConnect(String[] args) {
 		Connection con = null;

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 //import java.io.ObjectOutputStream;
@@ -14,15 +15,19 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 
 import model.ClientWrapper;
 import model.Cluster;
+import model.Data;
 import model.FinestraTemporale;
 import model.Robot;
 import model.Segnale;
@@ -32,14 +37,16 @@ public class GestoreSegnali implements Runnable {
 	private ConcurrentHashMap<String, Robot> robots;
 	private ConcurrentLinkedQueue<Segnale> segnali;
 	private ServerSocket serverForDashboards;
-	private LinkedList<ClientWrapper> clients;
+	private ConcurrentLinkedQueue<ClientWrapper> clients;
+	private String[] args;
 	private Thread IRHandler;
 	//private long timer;
 	public GestoreSegnali(String[] args){
 		clusters = new ConcurrentHashMap<String, Cluster>();
 		robots = new ConcurrentHashMap<String, Robot>();
 		segnali = new ConcurrentLinkedQueue<Segnale>();
-		clients = new LinkedList<ClientWrapper>();
+		clients = new ConcurrentLinkedQueue<ClientWrapper>();
+		this.args = args;
 		IRHandler = new Thread(){
 			private Connection con;
 			public void run(){
@@ -58,14 +65,23 @@ public class GestoreSegnali implements Runnable {
 					e.printStackTrace();
 				}
 				while(true){
+					if(!Storage.isDatabaseDown.get()){
 					System.out.println("Inizio calcolo e invio IR");
-					//System.out.println("Segnali rimasti pre-calcolo e invio: " + segnali.size());
+					//System.outprintln("Segnali rimasti pre-calcolo e invio: " + segnali.size());
 					//Finiamo di effettuare le ultime query se ne rimangono
 					Storage.commitChanges();
 					
 					//Calcolo il dato e lo invio
 					calcolaIR(con);
-					
+					}else{
+						System.out.println("Database down; non posso calcolare l'IR");
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
 					//Resettiamo il cooldown
 					//timer = System.currentTimeMillis();
 					
@@ -91,6 +107,10 @@ public class GestoreSegnali implements Runnable {
 			Robot robot = null;
 			Cluster cluster = null;
 			//Riconosciamo il Robot e il Cluster
+			synchronized(clusters){
+				synchronized(robots){
+					
+			
 			if(!robots.containsKey(segnale.getRobotID())){
 				//Prima creiamo il cluster se non c'è
 				if(!clusters.containsKey(segnale.getClusterID())){
@@ -105,6 +125,9 @@ public class GestoreSegnali implements Runnable {
 			}else{
 				robot = robots.get(segnale.getRobotID());
 				cluster = clusters.get(segnale.getClusterID());
+			}
+			
+				}
 			}
 			//Analizziamo il segnale
 			if(segnale.getValue()){
@@ -180,21 +203,28 @@ public class GestoreSegnali implements Runnable {
 		}
 		System.out.println("Calcolo IR completato. Invio del dato alle Dashboard");
 		//Invio il dato calcolato
-		for(ClientWrapper client : clients){
+		Iterator<ClientWrapper> itr = clients.iterator();
+		while(itr.hasNext()){
+			ClientWrapper client = itr.next();
 			try {
-				HashMap<String, Robot> r_clone = new HashMap<String, Robot>(robots);
-				HashMap<String, Cluster> c_clone = new HashMap<String, Cluster>(clusters);
-				client.getClientOut().writeObject(c_clone);
-				client.getClientOut().writeObject(r_clone);
+				//HashMap<String, Robot> r_clone = new HashMap<String, Robot>(robots);
+				//HashMap<String, Cluster> c_clone = new HashMap<String, Cluster>(clusters);
+				//client.getClientOut().writeObject(clusters);
+				//client.getClientOut().writeObject(robots);
+				synchronized(clusters){
+					synchronized(robots){
+						client.getClientOut().writeObject(new Gson().toJson(new Data(clusters, robots)));
+					}
+				}
 				client.getClientOut().flush();
 				client.getClientOut().reset();
-				System.out.println("Dato inviato.");
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				//Dashboard disconnected
+				System.out.println("Dashboard disconnected: " + client.getClientSocket().getInetAddress());
+				clients.remove(client);
 			}
 		}
-		
+		System.out.println("Dato inviato.");
 		//Storage.rimuoviFinestreInattive(oneHourAgo);
 		
 		//long end = System.currentTimeMillis();

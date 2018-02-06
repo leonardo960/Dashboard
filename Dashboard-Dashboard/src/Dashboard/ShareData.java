@@ -10,10 +10,15 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JFrame;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import model.Cluster;
+import model.Data;
 import model.Robot;
 
 
@@ -22,8 +27,8 @@ public class ShareData {
 
 	protected static JFrame window;
 	protected static String lastUpdate;
-	protected static HashMap<String, Cluster> c_map;
-	protected static HashMap<String, Robot> r_map;
+	protected static ConcurrentHashMap<String, Cluster> c_map;
+	protected static ConcurrentHashMap<String, Robot> r_map;
 	public static Screen currentScreen;
 	public void ShareDatas(){
 		if(window == null){
@@ -47,12 +52,12 @@ public class ShareData {
 		lastUpdate = new SimpleDateFormat("HH:mm:ss").format(new Date());
 	}
 	
-	public void setCMap(HashMap<String,Cluster> c_map){
+	public void setCMap(ConcurrentHashMap<String,Cluster> c_map){
 		this.c_map = c_map; 
 	}
 	
 	
-	public void setRMap(HashMap<String,Robot> r_map){
+	public void setRMap(ConcurrentHashMap<String,Robot> r_map){
 		this.r_map = r_map; 
 	}
 
@@ -65,38 +70,13 @@ public class ShareData {
 				
 				ShareData sd = new ShareData();
 				
-				new Thread(){
-					public void run(){
-						try {
-							Socket client = new Socket("localhost", 60012);
-							ObjectInputStream in = new ObjectInputStream(client.getInputStream());
-							while(true){
-								HashMap<String, Cluster> clusters = (HashMap<String, Cluster>) in.readObject();
-								HashMap<String, Robot> robots = (HashMap<String, Robot>) in.readObject();
-								c_map = clusters;
-								r_map = robots;
-								lastUpdate = new SimpleDateFormat("HH:mm:ss").format(new Date());
-								currentScreen.update();
-								
-							}
-						} catch (UnknownHostException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (ClassNotFoundException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
-				}.start();
+				
 				
 				try {
 					
 					//Oggetti di prova
-					HashMap<String, Cluster> c_map = new HashMap<String, Cluster>();
-					HashMap<String, Robot> r_map = new HashMap<String, Robot>();
+					ConcurrentHashMap<String, Cluster> testc_map = new ConcurrentHashMap<String, Cluster>();
+					ConcurrentHashMap<String, Robot> testr_map = new ConcurrentHashMap<String, Robot>();
 					
 					/*Robot r = new Robot("xr3", "yr3");
 					Robot r2 = new Robot("xr4", "yr4");
@@ -160,12 +140,48 @@ public class ShareData {
 					r_map.put("xr17", r15);
 					r_map.put("xr18", r16);
 					*/
-					sd.setCMap(c_map);
-					sd.setRMap(r_map);
+					sd.setCMap(testc_map);
+					sd.setRMap(testr_map);
 					sd.ShareDatas();
 					
 					sd.updateTime();
 					currentScreen = new Dashboard();
+					new Thread(){
+						public void run(){
+							try {
+								Socket client = new Socket(args[0], 60012);
+								ObjectInputStream in = new ObjectInputStream(client.getInputStream());
+								while(true){
+									Data data = new Gson().fromJson(((String) in.readObject()), Data.class);
+									c_map = data.getClusters();
+									r_map = data.getRobots();
+									//c_map = clusters;
+									//r_map = robots;
+									lastUpdate = new SimpleDateFormat("HH:mm:ss").format(new Date());
+									currentScreen.update();
+								}
+							} catch (ClassNotFoundException | IOException e) {
+								System.exit(1);
+							} 
+						}
+					}.start();
+					
+					for(int i = 0; i < Integer.parseInt(args[1]); i++){
+						new Thread(){
+							public void run(){
+								try {
+									Socket s = new Socket(args[0], 60012);
+									ObjectInputStream in = new ObjectInputStream(s.getInputStream());
+									while(true){
+										Data data = new Gson().fromJson(((String) in.readObject()), Data.class);
+									}
+								} catch (IOException | ClassNotFoundException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+						}.start();
+					}
 					
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -175,3 +191,5 @@ public class ShareData {
 	}
 	
 }
+
+

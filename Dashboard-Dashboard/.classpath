@@ -4,5 +4,10 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="lib" path="C:/Users/Leonardo Formichetti/Downloads/miglayout-swing.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Leonardo Formichetti/Repos/Dashboard/java-json.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Leonardo Formichetti/Downloads/gson-2.8.2.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/Leonardo%20Formichetti/Downloads/gson-2.8.2-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
