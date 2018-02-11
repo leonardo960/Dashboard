@@ -1,21 +1,20 @@
 package Dashboard;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import model.Cluster;
 import model.Data;
@@ -29,6 +28,8 @@ public class ShareData {
 	protected static String lastUpdate;
 	protected static ConcurrentHashMap<String, Cluster> c_map;
 	protected static ConcurrentHashMap<String, Robot> r_map;
+	protected static Color defaultColor;
+	protected static int threshold;
 	public static Screen currentScreen;
 	public void ShareDatas(){
 		if(window == null){
@@ -44,6 +45,8 @@ public class ShareData {
 			window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			window.setVisible(true);
 			window.getContentPane().setLayout(null);
+			defaultColor = new JButton().getBackground();
+			threshold = 40;
 		}
 	}
 	
@@ -53,12 +56,12 @@ public class ShareData {
 	}
 	
 	public void setCMap(ConcurrentHashMap<String,Cluster> c_map){
-		this.c_map = c_map; 
+		ShareData.c_map = c_map; 
 	}
 	
 	
 	public void setRMap(ConcurrentHashMap<String,Robot> r_map){
-		this.r_map = r_map; 
+		ShareData.r_map = r_map; 
 	}
 
 	
@@ -149,6 +152,7 @@ public class ShareData {
 					new Thread(){
 						public void run(){
 							try {
+								@SuppressWarnings("resource")
 								Socket client = new Socket(args[0], 60012);
 								ObjectInputStream in = new ObjectInputStream(client.getInputStream());
 								while(true){
@@ -170,9 +174,11 @@ public class ShareData {
 						new Thread(){
 							public void run(){
 								try {
+									@SuppressWarnings("resource")
 									Socket s = new Socket(args[0], 60012);
 									ObjectInputStream in = new ObjectInputStream(s.getInputStream());
 									while(true){
+										@SuppressWarnings("unused")
 										Data data = new Gson().fromJson(((String) in.readObject()), Data.class);
 									}
 								} catch (IOException | ClassNotFoundException e) {

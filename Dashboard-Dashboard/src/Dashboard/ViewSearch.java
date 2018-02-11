@@ -5,17 +5,14 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
+
 import javax.swing.JTextField;
 
 import net.miginfocom.swing.MigLayout;
@@ -86,6 +83,9 @@ public class ViewSearch extends ShareData implements Screen{
 						if(cluster_rb.isSelected()){
 							if(c_map.containsKey(searched)){
 								id_searched.setText("Cluster " + searched);
+								if(c_map.get(searched).getIR()>threshold)
+									id_searched.setBackground(Color.red);
+								else id_searched.setBackground(defaultColor);
 								id_searched.setVisible(true);
 							}
 							else{
@@ -96,6 +96,9 @@ public class ViewSearch extends ShareData implements Screen{
 						else{
 							if(r_map.containsKey(searched)){
 								id_searched.setText("Robot " + searched);
+								if(r_map.get(searched).getIR()>threshold)
+									id_searched.setBackground(Color.red);
+								else id_searched.setBackground(defaultColor);
 								id_searched.setVisible(true);
 							}
 							else{

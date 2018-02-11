@@ -1,18 +1,13 @@
 package Dashboard;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
-
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-
 import model.Cluster;
 import model.Robot;
 import net.miginfocom.swing.MigLayout;
@@ -117,7 +112,7 @@ public class RobotListSensor extends ShareData implements Screen{
 			}
 		
 		for(JButton jb: robots_btns){
-			if(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))).getIR()>=40)
+			if(r_map.get(jb.getText().substring(0, jb.getText().indexOf(" "))).getIR()>=threshold)
 				jb.setBackground(Color.red);
 		  		panel_list.add(jb, "width 200, height 30");
 				jb.addActionListener(new ActionListener() {

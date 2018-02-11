@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 //import java.io.ObjectOutputStream;
@@ -23,7 +22,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.json.JSONException;
 import org.json.JSONObject;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 
 import model.ClientWrapper;
 import model.Cluster;
@@ -38,7 +36,6 @@ public class GestoreSegnali implements Runnable {
 	private ConcurrentLinkedQueue<Segnale> segnali;
 	private ServerSocket serverForDashboards;
 	private ConcurrentLinkedQueue<ClientWrapper> clients;
-	private String[] args;
 	private Thread IRHandler;
 	//private long timer;
 	public GestoreSegnali(String[] args){
@@ -46,7 +43,6 @@ public class GestoreSegnali implements Runnable {
 		robots = new ConcurrentHashMap<String, Robot>();
 		segnali = new ConcurrentLinkedQueue<Segnale>();
 		clients = new ConcurrentLinkedQueue<ClientWrapper>();
-		this.args = args;
 		IRHandler = new Thread(){
 			private Connection con;
 			public void run(){
@@ -67,7 +63,7 @@ public class GestoreSegnali implements Runnable {
 				while(true){
 					if(!Storage.isDatabaseDown.get()){
 					System.out.println("Inizio calcolo e invio IR");
-					//System.outprintln("Segnali rimasti pre-calcolo e invio: " + segnali.size());
+
 					//Finiamo di effettuare le ultime query se ne rimangono
 					Storage.commitChanges();
 					
@@ -82,10 +78,6 @@ public class GestoreSegnali implements Runnable {
 							e.printStackTrace();
 						}
 					}
-					//Resettiamo il cooldown
-					//timer = System.currentTimeMillis();
-					
-					//System.out.println("Segnali rimasti post-calcolo e invio:" + segnali.size());
 				}
 			}
 		};
@@ -159,14 +151,9 @@ public class GestoreSegnali implements Runnable {
 	}
 
 	private void calcolaIR(Connection con){
-		//System.out.println("Inizio calcolo IR");
-		//long begin = System.currentTimeMillis();
-		
 		Timestamp oneHourAgo = new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000));
 		Timestamp now = new Timestamp(System.currentTimeMillis());
 		
-		//System.out.println("One hour ago: " + oneHourAgo);
-		//System.out.println("Now: " + now);
 		System.out.println("Inizio recupero finestre dal db");
 		HashMap<String, LinkedList<FinestraTemporale>> finestreTemporali = Storage.prelevaFinestreTemporali(con);
 		System.out.println("Fine recupero finestre dal db");
@@ -207,10 +194,6 @@ public class GestoreSegnali implements Runnable {
 		while(itr.hasNext()){
 			ClientWrapper client = itr.next();
 			try {
-				//HashMap<String, Robot> r_clone = new HashMap<String, Robot>(robots);
-				//HashMap<String, Cluster> c_clone = new HashMap<String, Cluster>(clusters);
-				//client.getClientOut().writeObject(clusters);
-				//client.getClientOut().writeObject(robots);
 				synchronized(clusters){
 					synchronized(robots){
 						client.getClientOut().writeObject(new Gson().toJson(new Data(clusters, robots)));

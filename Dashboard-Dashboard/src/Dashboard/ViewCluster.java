@@ -5,16 +5,13 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import org.json.JSONException;
 
 import model.Cluster;
 import model.Robot;
@@ -305,13 +302,14 @@ public class ViewCluster extends ShareData implements Screen{
 			if(!r.getSensorValue((byte) 6))
 				s7++;
 		}
-		num_s1.setText(""+s1);
-		num_s2.setText(""+s2);
-		num_s3.setText(""+s3);
-		num_s4.setText(""+s4);
-		num_s5.setText(""+s5);
-		num_s6.setText(""+s6);
-		num_s7.setText(""+s7);
+		
+		num_s1.setText(""+ s1 + " (" + (int)(((float)s1/c.getRobots().size())*100) + "%)");
+		num_s2.setText(""+ s2 + " (" + (int)(((float)s2/c.getRobots().size())*100) + "%)");
+		num_s3.setText(""+ s3 + " (" + (int)(((float)s3/c.getRobots().size())*100) + "%)");
+		num_s4.setText(""+ s4 + " (" + (int)(((float)s4/c.getRobots().size())*100) + "%)");
+		num_s5.setText(""+ s5 + " (" + (int)(((float)s5/c.getRobots().size())*100) + "%)");
+		num_s6.setText(""+ s6 + " (" + (int)(((float)s6/c.getRobots().size())*100) + "%)");
+		num_s7.setText(""+ s7 + " (" + (int)(((float)s7/c.getRobots().size())*100) + "%)");
 		
 		if(c.getRobots().size() > robots_btns.size()){
 			LinkedList<Robot> newRobots = new LinkedList<Robot>();
@@ -341,12 +339,18 @@ public class ViewCluster extends ShareData implements Screen{
 					}
 				});
 			}
-		}else{
-			for(JButton jb : robots_btns){
-				Robot r = r_map.get(jb.getText().substring(0, jb.getText().indexOf(" ")));
-				jb.setText(r.getID() + " IR: " + r.getIR() + "%");
-			}
 		}
+			
+		for(JButton jb : robots_btns){
+				Robot r = r_map.get(jb.getText().substring(0, jb.getText().indexOf(" ")));
+				if(r.getIR() > threshold){
+					jb.setBackground(Color.red);
+				}else{
+					jb.setBackground(defaultColor);
+				}
+				jb.setText(r.getID() + " IR: " + r.getIR() + "%");
+		}
+		
 		
 		lista_rbt.setText("Robots nel Cluster " + "#" + c.getRobots().size());
 		

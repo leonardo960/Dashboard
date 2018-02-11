@@ -20,12 +20,6 @@ import model.FinestraTemporale;
 
 public class Storage {
 	static private Connection con;
-	static private PreparedStatement batchInsert;
-	static private PreparedStatement batchUpdate;
-	static private int batchInsertCount;
-	static private int batchInsertSize;
-	static private int batchUpdateCount;
-	static private int batchUpdateSize;
 	static private List<PreparedStatement> insertBatches;
 	static private List<PreparedStatement> updateBatches;
 	static private List<Integer> insertBatchesCounters;
@@ -37,35 +31,30 @@ public class Storage {
 	static private Thread flusher;
 	static public AtomicBoolean isDatabaseDown;
 	static public void inizializza(String[] args){
-		//con = dbConnect(args);
 		
-		//Procedura di creazione database
-		/*try {
-			Statement create = con.createStatement();
-			String createSQL = "create database dashboard";
-			create.execute(createSQL);
-			createSQL = "use dashboard";
-			create.execute(createSQL);
-			createSQL = "create table finestra_temporale("
-					+ "id int primary key auto_increment,"
-					+ "id_oggetto varchar(7) default \"errore\","
-					+ "sogliaSinistra timestamp default null,"
-					+ "sogliaDestra timestamp default null);";
-			create.execute(createSQL);
-			create.close();
-			con.commit();
-		} catch (SQLException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}*/
+		
 		isDatabaseDown = new AtomicBoolean(false);
 		flusher = new Thread(){
 			public void run(){
 				con = dbConnect(args);
-				batchInsertCount = 0;
-				batchInsertSize = 50;
-				batchUpdateCount = 0;
-				batchUpdateSize = 50;
+				//Procedura di creazione database
+				try {
+					Statement create = con.createStatement();
+					String createSQL = "create database dashboard";
+					create.execute(createSQL);
+					createSQL = "use dashboard";
+					create.execute(createSQL);
+					createSQL = "create table finestra_temporale("
+							+ "id int primary key auto_increment,"
+							+ "id_oggetto varchar(7) default \"errore\","
+							+ "sogliaSinistra timestamp default null,"
+							+ "sogliaDestra timestamp default null);";
+					create.execute(createSQL);
+					create.close();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				try {
 					batchesNum = 10;
 					workingBatch = new AtomicInteger(0);
@@ -82,9 +71,7 @@ public class Storage {
 						updateBatchesCounters.add(i, 0);
 						flushChecks.add(i, false);
 					}
-					
-					//batchInsert = con.prepareStatement("insert into finestra_temporale (id_oggetto, sogliaSinistra, sogliaDestra) values (?, ?, null)");
-					//batchUpdate = con.prepareStatement("update finestra_temporale set sogliaDestra = ? where id_oggetto = ? order by sogliaSinistra desc limit 1");
+
 				} catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -133,11 +120,7 @@ public class Storage {
 		Connection con = null;
 		try {
 		con = DriverManager.getConnection("jdbc:mysql://localhost/?useSSL=true", args[0], args[1]);
-		//con.setAutoCommit(false);
-		Statement useDBStatement = con.createStatement();
-		String useDBcommand = "use dashboard";
-		useDBStatement.execute(useDBcommand);
-		//con.commit();
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -146,64 +129,19 @@ public class Storage {
 	}
 	
 	
-	/*static public void apriFinestraTemporaleRobot(Segnale segnale){
-		try {
-			batchInsert.setString(1, segnale.getRobotID());
-			batchInsert.setTimestamp(2, segnale.getTimestamp());
-			batchInsert.addBatch();
-			if(++batchInsertCount % batchInsertSize == 0){
-				batchInsert.executeBatch();
-				con.commit();
-				batchInsert.clearBatch();
-				batchInsertCount = 0;
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
-	
 	static public void apriFinestraTemporaleRobot(Segnale segnale){
 		try {
 			int temp = workingBatch.get();
 			insertBatches.get(temp).setString(1, segnale.getRobotID());
 			insertBatches.get(temp).setTimestamp(2, segnale.getTimestamp());
 			insertBatches.get(temp).addBatch();
-			//insertBatchesCounters.set(temp, insertBatchesCounters.get(temp)+1);
-			/*if(insertBatchesCounters.get(workingBatch.get()) == batchInsertSize){
-				flushChecks.set(workingBatch.get(), true);
-				workingBatch.set((workingBatch.get() + 1) % batchesNum);
-			}*/
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	
-	/*static public void chiudiFinestraTemporaleRobot(Segnale segnale){
-		try {
-			batchUpdate.setTimestamp(1, segnale.getTimestamp());
-			batchUpdate.setString(2, segnale.getRobotID());
-			batchUpdate.addBatch();
-			if(++batchUpdateCount % batchUpdateSize == 0){
-				//Devo assicurarmi prima di flushare le insert o si creano problemi
-				//del tipo che l'update non trova la riga (che doveva essere inserita
-				//da una insert i cui parametri sono rimasti nel batch che deve
-				//ancora flushare)
-				batchInsert.executeBatch();
-				batchInsert.clearBatch();
-				batchInsertCount = 0;
-				batchUpdate.executeBatch();
-				con.commit();
-				batchUpdate.clearBatch();
-				batchUpdateCount = 0;
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
+
 	
 	static public void chiudiFinestraTemporaleRobot(Segnale segnale){
 		try {
@@ -211,55 +149,19 @@ public class Storage {
 			updateBatches.get(temp).setTimestamp(1, segnale.getTimestamp());
 			updateBatches.get(temp).setString(2, segnale.getRobotID());
 			updateBatches.get(temp).addBatch();
-			//updateBatchesCounters.set(temp, updateBatchesCounters.get(temp)+1);
-			
-			/*if(updateBatchesCounters.get(workingBatch.get()) == batchUpdateSize){
-				flushChecks.set(workingBatch.get(), true);
-				workingBatch.set((workingBatch.get() + 1) % batchesNum);
-			}*/
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	/*static public void commitChanges(){
-		try {
-			batchInsert.executeBatch();
-			con.commit();
-			batchUpdate.executeBatch();
-			con.commit();
-			batchInsert.clearBatch();
-			batchUpdate.clearBatch();
-			batchUpdateCount = 0;
-			batchInsertCount = 0;
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
-	}*/
+
 	
 	static public void commitChanges(){
 		flushChecks.set(workingBatch.get(), true);
 		workingBatch.set((workingBatch.get() + 1) % batchesNum);
 	}
-	
-	/*static public void apriFinestraTemporaleCluster(Segnale segnale){
-		try {
-			batchInsert.setString(1, segnale.getClusterID());
-			batchInsert.setTimestamp(2, segnale.getTimestamp());
-			batchInsert.addBatch();
-			if(++batchInsertCount % batchInsertSize == 0){
-				batchInsert.executeBatch();
-				con.commit();
-				batchInsert.clearBatch();
-				batchInsertCount = 0;
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
+
 	
 	static public void apriFinestraTemporaleCluster(Segnale segnale){
 		try {
@@ -267,11 +169,6 @@ public class Storage {
 			insertBatches.get(temp).setString(1, segnale.getClusterID());
 			insertBatches.get(temp).setTimestamp(2, segnale.getTimestamp());
 			insertBatches.get(temp).addBatch();
-			//insertBatchesCounters.set(temp, insertBatchesCounters.get(temp)+1);
-			/*if(insertBatchesCounters.get(workingBatch.get()) == batchInsertSize){
-				flushChecks.set(workingBatch.get(), true);
-				workingBatch.set((workingBatch.get() + 1) % batchesNum);
-			}*/
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -280,39 +177,12 @@ public class Storage {
 	
 	
 	
-	/*static public void chiudiFinestraTemporaleCluster(Segnale segnale){
-		try {
-			batchUpdate.setTimestamp(1, segnale.getTimestamp());
-			batchUpdate.setString(2, segnale.getClusterID());
-			if(++batchUpdateCount % batchUpdateSize == 0){
-				//Stesso discorso di chiudiFinestraTemporaleRobot,
-				//devo assicurarmi che le insert siano state fatte prima
-				//delle update
-				batchInsert.executeBatch();
-				batchInsert.clearBatch();
-				batchInsertCount = 0;
-				batchUpdate.executeBatch();
-				con.commit();
-				batchUpdateCount = 0;
-				batchUpdate.clearBatch();
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}*/
-	
 	static public void chiudiFinestraTemporaleCluster(Segnale segnale){
 		try {
 			int temp = workingBatch.get();
 			updateBatches.get(temp).setTimestamp(1, segnale.getTimestamp());
 			updateBatches.get(temp).setString(2, segnale.getClusterID());
 			updateBatches.get(temp).addBatch();
-			//updateBatchesCounters.set(temp, updateBatchesCounters.get(temp)+1);
-			/*if(updateBatchesCounters.get(workingBatch.get()) == batchUpdateSize){
-				flushChecks.set(workingBatch.get(), true);
-				workingBatch.set((workingBatch.get() + 1) % batchesNum);
-			}*/
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

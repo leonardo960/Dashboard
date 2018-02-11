@@ -23,8 +23,8 @@ public class Tester {
 	private static int segnaliPerIterazione;
 	
 	public static void main(String[] args){
-		iterazioni = 5;
-		segnaliPerIterazione = 90000;
+		iterazioni = Integer.valueOf(args[0]);
+		segnaliPerIterazione = Integer.valueOf(args[1]);
 		robots = new LinkedList<Robot>();	
 		rand = new Random();
 		for(int i = 0; i < 90000; i++){
@@ -47,10 +47,8 @@ public class Tester {
 			
 			long sendBegin = System.currentTimeMillis();
 			BufferedWriter bw = new BufferedWriter( new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8));
-			//OutputStreamWriter outputStream = new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8);
 			BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
 			bw.flush();
-			int signalsSent = 0;
 			for(int j = 0; j < iterazioni; j++){
 				long begin = System.currentTimeMillis();
 					for(int i = 0; i < segnaliPerIterazione; i++){
@@ -67,7 +65,6 @@ public class Tester {
 									json.put("timestamp", segnale.getTimestamp().getTime());
 									json.put("sensorvalue", segnale.getValue());
 									bw.write(json.toString().concat("\n"));
-									signalsSent++;
 									robot.setSensor(z, true);
 									robot.decrementDownSensors();
 									System.out.println("Sent maintenance signal of iteration #" + i);
@@ -82,15 +79,12 @@ public class Tester {
 						json.put("timestamp", signalToSend.getTimestamp().getTime());
 						json.put("sensorvalue", signalToSend.getValue());
 						bw.write(json.toString().concat("\n"));
-						signalsSent++;
 						System.out.println("Chunk #" + j + " - " + "Signal #" + i + " sent to Client #" + client.getLocalAddress());
 						}
 					}
 					
 				long end = System.currentTimeMillis();
 				
-				System.out.println("Per inviare " + signalsSent + " segnali ci sono voluti " + (end - begin) + " secondi");
-				signalsSent = 0;
 				if((end - begin) < 60000L){
 					try {
 						Thread.sleep(60000L - (end - begin));
@@ -117,7 +111,7 @@ public class Tester {
 				bw.close();
 				client.close();
 				socket.close();
-				System.out.println("Comunicazione Server/Client conclusa con successo. Shutdown del server...");
+				System.out.println("Comunicazione tester/IRES avvenuta con successo. Shutdown tester...");
 			}else{
 				System.out.println("Il client non ha inviato il segnale di avvenuta ricezione. Shutdown del server...");
 				br.close();

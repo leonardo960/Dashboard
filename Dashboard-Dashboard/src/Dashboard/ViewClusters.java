@@ -1,22 +1,16 @@
 package Dashboard;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import model.Cluster;
 import net.miginfocom.swing.MigLayout;
@@ -116,12 +110,18 @@ public class ViewClusters extends ShareData implements Screen{
 					}
 				});
 			}
-		}else{
-			for(JButton jb : clusters_btns){
-				Cluster c = c_map.get(jb.getText().substring(0, jb.getText().indexOf(" ")));
-				jb.setText(c.getID() + " IR: " + c.getIR() + "%");
-			}
 		}
+		
+		for(JButton jb : clusters_btns){
+				Cluster c = c_map.get(jb.getText().substring(0, jb.getText().indexOf(" ")));
+				if(c.getIR() > threshold){
+					jb.setBackground(Color.RED);
+				}else{
+					jb.setBackground(defaultColor);
+				}
+				jb.setText(c.getID() + " IR: " + c.getIR() + "%");
+		}
+		
 		
 		
 		lblTime.setText(lastUpdate);
