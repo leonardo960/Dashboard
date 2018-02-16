@@ -170,25 +170,6 @@ public class ShareData {
 						}
 					}.start();
 					
-					for(int i = 0; i < Integer.parseInt(args[1]); i++){
-						new Thread(){
-							public void run(){
-								try {
-									@SuppressWarnings("resource")
-									Socket s = new Socket(args[0], 60012);
-									ObjectInputStream in = new ObjectInputStream(s.getInputStream());
-									while(true){
-										@SuppressWarnings("unused")
-										Data data = new Gson().fromJson(((String) in.readObject()), Data.class);
-									}
-								} catch (IOException | ClassNotFoundException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-							}
-						}.start();
-					}
-					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

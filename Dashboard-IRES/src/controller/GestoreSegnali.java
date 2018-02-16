@@ -208,35 +208,10 @@ public class GestoreSegnali implements Runnable {
 			}
 		}
 		System.out.println("Dato inviato.");
-		//Storage.rimuoviFinestreInattive(oneHourAgo);
-		
-		//long end = System.currentTimeMillis();
-		
-		//long timeElapsed = end - begin;
-		
-		//System.out.println("Per calcolare l'IR dei Robot e dei Cluster ci sono voluti " + timeElapsed / 1000.0 + " secondi");
-		
-		//Stampo l'IR dei primi 500 Robot e dei primi 50 Cluster per controllare un po'
-		//int counter = 500;
-		//for(String c : robots.keySet()){
-		//	System.out.println("L\'IR del robot " + c + " è " + robots.get(c).getIR() + "%");
-		//	if(--counter < 0) break;
-		//}
-		//counter = 100;
-		//for(String c : clusters.keySet()){
-		//	System.out.println("Dati Cluster " + c +" :\n"
-		//			+ "IR: " + clusters.get(c).getIR() + "%\n"
-		//			+ "Robot attualmente down: " + clusters.get(c).getRobotDown());
-			//if(--counter < 0) break;
 	}
 	
 	@Override
 	public void run() {
-		/*long begin = System.currentTimeMillis();
-		
-		long end = begin + 30000;
-		
-		while(begin < end){*/
 		
 		//Spawniamo il thread che si occupa di ricevere i segnali
 		Thread ricettore = new Thread(new Ricettore());
@@ -259,11 +234,6 @@ public class GestoreSegnali implements Runnable {
 			}
 		}.start();
 		
-		//Con i due componenti helper istanzianti possiamo occuparci di 
-		//analizzare i segnali
-		//System.out.println("Inizio l'analisi dei segnali");
-		
-		//timer = System.currentTimeMillis();
 		
 		synchronized(this){
 			try {
@@ -276,24 +246,9 @@ public class GestoreSegnali implements Runnable {
 		
 		while(true){
 			analizzaSegnale();
-			/*if(System.currentTimeMillis() - timer >= 10000){
-				if(IRHandler.getState() == Thread.State.WAITING){
-					synchronized(IRHandler){
-						IRHandler.notify();
-					}
-				}
-			}*/
 		}
 		
 		
-		
-	
-		//long end = System.currentTimeMillis();
-		
-		//long timeElapsed = (end - begin);
-		
-		//System.out.println("Per analizzare " + numeroSegnali + " segnali ci sono voluti " + timeElapsed / 1000.0 + " secondi");
-		//System.out.println("Il numero di Robot registrati è: " + robots.size());
 		
 	}
 	
